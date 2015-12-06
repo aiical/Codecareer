@@ -1,0 +1,7 @@
+D:\UFIDAJOB\项目文件\Project\UAP推广\示例\调用自定义界面及参照\UFIDA.U8.UAP.UI.Runtime.Sample1\UFIDA.U8.UAP.UI.Runtime.Sample1\bin\Debug\UFIDA.U8.UAP.UI.Runtime.Sample1.dll
+D:\UFIDAJOB\项目文件\Project\UAP推广\示例\调用自定义界面及参照\UFIDA.U8.UAP.UI.Runtime.Sample1\UFIDA.U8.UAP.UI.Runtime.Sample1\bin\Debug\UFIDA.U8.UAP.UI.Runtime.Sample1.pdb
+D:\UFIDAJOB\项目文件\Project\UAP推广\示例\调用自定义界面及参照\UFIDA.U8.UAP.UI.Runtime.Sample1\UFIDA.U8.UAP.UI.Runtime.Sample1\obj\Debug\ResolveAssemblyReference.cache
+D:\UFIDAJOB\项目文件\Project\UAP推广\示例\调用自定义界面及参照\UFIDA.U8.UAP.UI.Runtime.Sample1\UFIDA.U8.UAP.UI.Runtime.Sample1\obj\Debug\UFIDA.U8.UAP.UI.Runtime.Sample1.dll
+D:\UFIDAJOB\项目文件\Project\UAP推广\示例\调用自定义界面及参照\UFIDA.U8.UAP.UI.Runtime.Sample1\UFIDA.U8.UAP.UI.Runtime.Sample1\obj\Debug\UFIDA.U8.UAP.UI.Runtime.Sample1.pdb
+D:\UFIDAJOB\项目文件\Project\UAP推广\示例\调用自定义界面及参照\UFIDA.U8.UAP.UI.Runtime.Sample1\UFIDA.U8.UAP.UI.Runtime.Sample1\obj\Debug\UFIDA.U8.UAP.UI.Runtime.Sample1.BGXiangqing.resources
+D:\UFIDAJOB\项目文件\Project\UAP推广\示例\调用自定义界面及参照\UFIDA.U8.UAP.UI.Runtime.Sample1\UFIDA.U8.UAP.UI.Runtime.Sample1\obj\Debug\UFIDA.U8.UAP.UI.Runtime.Sample1.csproj.GenerateResource.Cache
