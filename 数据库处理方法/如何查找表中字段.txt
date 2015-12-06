@@ -1,0 +1,1 @@
+select name from syscolumns where id=(select max(id) from sysobjects where xtype='u' and name='itemtype')

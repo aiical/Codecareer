@@ -1,0 +1,74 @@
+C#通过鼠标获取窗口句柄(2008-09-22 11:29:08)标签：句柄 api c 获取窗口句柄 it 分类：C#,ASP.Net 
+这个小程序需要用到系统API，也就是需要用到user32中的三个函数。
+第一个：WindowFromPoint 返回一个窗口句柄
+第二个：GetWindowText 获取窗口标题
+第三个：GetClassName 获取类名
+当然，最重要的一点就是要引用命名空间：using System.Runtime.InteropServices;
+先来看看做出来的效果：
+
+在来看看源码：
+------------------源码部分-------------------------
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
+
+namespace prjCursorHandler
+{
+public partial class Form1 : Form
+{
+//获取窗口标题
+[DllImport("user32", SetLastError = true)]
+public static extern int GetWindowText(
+IntPtr hWnd, //窗口句柄
+StringBuilder lpString, //标题
+int nMaxCount //最大值
+);
+//获取类的名字
+[DllImport("user32.dll")]
+private static extern int GetClassName(
+IntPtr hWnd, //句柄
+StringBuilder lpString, //类名
+int nMaxCount //最大值
+);
+//根据坐标获取窗口句柄
+[DllImport("user32")]
+private static extern IntPtr WindowFromPoint(
+Point Point //坐标
+);
+public Form1()
+{
+InitializeComponent();
+}
+private void button1_Click(object sender, EventArgs e)
+{
+this.timer1.Enabled = !this.timer1.Enabled; //这个有点意思。按一下停止，按一下开始。很有用
+}
+
+private void timer1_Tick(object sender, EventArgs e)
+{
+int x = Cursor.Position.X;
+int y = Cursor.Position.Y;
+Point p = new Point(x, y);
+IntPtr formHandle = WindowFromPoint(p);//得到窗口句柄
+StringBuilder title = new StringBuilder(256);
+GetWindowText(formHandle, title, title.Capacity);//得到窗口的标题
+StringBuilder className = new StringBuilder(256);
+GetClassName(formHandle, className, className.Capacity);//得到窗口的类名
+this.textBox1.Text = "窗口句柄:" + formHandle.ToString() + Environment.NewLine + "窗口标题:" + title + Environment.NewLine + "类名:" + className;
+}
+
+private void textBox1_KeyDown(object sender, KeyEventArgs e)
+{
+if(e.KeyCode==Keys.Enter || e.KeyCode==Keys.Space)
+{
+this.button1.PerformClick();
+}
+}
+}
+}
+ 

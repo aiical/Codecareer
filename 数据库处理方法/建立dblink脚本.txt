@@ -1,0 +1,33 @@
+/****** 对象:  LinkedServer [192.168.1.102]    脚本日期: 01/30/2010 21:55:56 ******/
+IF NOT EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'192.168.1.102')
+BEGIN
+EXEC master.dbo.sp_addlinkedserver @server = N'192.168.1.102', @srvproduct=N'SQL Server'
+ /* For security reasons the linked server remote logins password is changed with ######## */
+/****** 使用的时候要注意赋予用户相应的权限 ******/
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'192.168.1.102',@useself=N'False',@locallogin=NULL,@rmtuser=N'sa',@rmtpassword='########'
+END
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'collation compatible', @optvalue=N'false'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'data access', @optvalue=N'true'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'dist', @optvalue=N'false'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'pub', @optvalue=N'false'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'rpc', @optvalue=N'false'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'rpc out', @optvalue=N'false'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'sub', @optvalue=N'false'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'connect timeout', @optvalue=N'0'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'collation name', @optvalue=null
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'lazy schema validation', @optvalue=N'false'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'query timeout', @optvalue=N'0'
+GO
+EXEC master.dbo.sp_serveroption @server=N'192.168.1.102', @optname=N'use remote collation', @optvalue=N'true'
+

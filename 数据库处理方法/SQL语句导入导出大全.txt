@@ -1,0 +1,379 @@
+
+
+ SQL语句导入导出大全      
+ SQL语句导入导出大全 
+
+/*******  导出到excel 
+EXEC master..xp_cmdshell ’bcp SettleDB.dbo.shanghu out c:temp1.xls -c -q -S"GNETDATA/GNETDATA" -U"sa" -P""’ 
+
+/***********  导入Excel 
+SELECT * 
+FROM OpenDataSource( ’Microsoft.Jet.OLEDB.4.0’, 
+  ’Data Source="c:test.xls";User ID=Admin;Password=;Extended properties=Excel 5.0’)...xactions 
+
+
+SELECT cast(cast(科目编号 as numeric(10,2)) as nvarchar(255))+’　’ 转换后的别名 
+FROM OpenDataSource( ’Microsoft.Jet.OLEDB.4.0’, 
+  ’Data Source="c:test.xls";User ID=Admin;Password=;Extended properties=Excel 5.0’)...xactions 
+
+/** 导入文本文件 
+EXEC master..xp_cmdshell ’bcp "dbname..tablename" in c:DT.txt -c -Sservername -Usa -Ppassword’ 
+
+/** 导出文本文件 
+EXEC master..xp_cmdshell ’bcp "dbname..tablename" out c:DT.txt -c -Sservername -Usa -Ppassword’ 
+或 
+EXEC master..xp_cmdshell ’bcp "Select * from dbname..tablename" queryout c:DT.txt -c -Sservername -Usa -Ppassword’ 
+
+导出到TXT文本，用逗号分开 
+exec master..xp_cmdshell ’bcp "库名..表名" out "d:tt.txt" -c -t ,-U sa -P password’ 
+
+
+BULK INSERT 库名..表名 
+FROM ’c:test.txt’ 
+WITH ( 
+    FIELDTERMINATOR = ’;’, 
+    ROWTERMINATOR = ’n’ 
+) 
+
+
+--/* dBase IV文件 
+select * from 
+OPENROWSET(’MICROSOFT.JET.OLEDB.4.0’ 
+,’dBase IV;HDR=NO;IMEX=2;DATABASE=C:’,’select * from [客户资料4.dbf]’) 
+--*/ 
+
+--/* dBase III文件 
+select * from 
+OPENROWSET(’MICROSOFT.JET.OLEDB.4.0’ 
+,’dBase III;HDR=NO;IMEX=2;DATABASE=C:’,’select * from [客户资料3.dbf]’) 
+--*/ 
+
+--/* FoxPro 数据库 
+select * from openrowset(’MSDASQL’, 
+’Driver=Microsoft Visual FoxPro Driver;SourceType=DBF;SourceDB=c:’, 
+’select * from [aa.DBF]’) 
+--*/ 
+
+/**************导入DBF文件****************/ 
+select * from openrowset(’MSDASQL’, 
+’Driver=Microsoft Visual FoxPro Driver; 
+SourceDB=e:VFP98data; 
+SourceType=DBF’, 
+’select * from customer where country != "USA" order by country’) 
+go 
+/***************** 导出到DBF ***************/ 
+如果要导出数据到已经生成结构(即现存的)FOXPRO表中,可以直接用下面的SQL语句 
+
+insert into openrowset(’MSDASQL’, 
+’Driver=Microsoft Visual FoxPro Driver;SourceType=DBF;SourceDB=c:’, 
+’select * from [aa.DBF]’) 
+select * from 表 
+
+说明: 
+SourceDB=c:  指定foxpro表所在的文件夹 
+aa.DBF        指定foxpro表的文件名. 
+
+ 
+
+
+/*************导出到Access********************/ 
+insert into openrowset(’Microsoft.Jet.OLEDB.4.0’, 
+   ’x:A.mdb’;’admin’;’’,A表) select * from 数据库名..B表 
+
+/*************导入Access********************/ 
+insert into B表 selet * from openrowset(’Microsoft.Jet.OLEDB.4.0’, 
+   ’x:A.mdb’;’admin’;’’,A表) 
+
+*********************  导入 xml　文件 
+
+DECLARE @idoc int 
+DECLARE @doc varchar(1000) 
+--sample XML document 
+SET @doc =’ 
+<root> 
+  <Customer cid= "C1" name="Janine" city="Issaquah"> 
+      <Order oid="O1" date="1/20/1996" amount="3.5" /> 
+      <Order oid="O2" date="4/30/1997" amount="13.4">Customer was very satisfied 
+      </Order> 
+   </Customer> 
+   <Customer cid="C2" name="Ursula" city="Oelde" > 
+      <Order oid="O3" date="7/14/1999" amount="100" note="Wrap it blue 
+             white red"> 
+            <Urgency>Important</Urgency> 
+            Happy Customer. 
+      </Order> 
+      <Order oid="O4" date="1/20/1996" amount="10000"/> 
+   </Customer> 
+</root> 
+’ 
+-- Create an internal representation of the XML document. 
+EXEC sp_xml_preparedocument @idoc OUTPUT, @doc 
+
+-- Execute a SELECT statement using OPENXML rowset provider. 
+SELECT * 
+FROM OPENXML (@idoc, ’/root/Customer/Order’, 1) 
+      WITH (oid     char(5), 
+            amount  float, 
+            comment ntext ’text()’) 
+EXEC sp_xml_removedocument @idoc 
+
+
+/********************导整个数据库*********************************************/ 
+
+用bcp实现的存储过程 
+
+
+/* 
+ 实现数据导入/导出的存储过程 
+         根据不同的参数,可以实现导入/导出整个数据库/单个表 
+ 调用示例: 
+--导出调用示例 
+----导出单个表 
+exec file2table ’zj’,’’,’’,’xzkh_sa..地区资料’,’c:zj.txt’,1 
+----导出整个数据库 
+exec file2table ’zj’,’’,’’,’xzkh_sa’,’C:docman’,1 
+
+--导入调用示例 
+----导入单个表 
+exec file2table ’zj’,’’,’’,’xzkh_sa..地区资料’,’c:zj.txt’,0 
+----导入整个数据库 
+exec file2table ’zj’,’’,’’,’xzkh_sa’,’C:docman’,0 
+
+*/ 
+if exists(select 1 from sysobjects where name=’File2Table’ and objectproperty(id,’IsProcedure’)=1) 
+ drop procedure File2Table 
+go 
+create procedure File2Table 
+@servername varchar(200)  --服务器名 
+,@username varchar(200)   --用户名,如果用NT验证方式,则为空’’ 
+,@password varchar(200)   --密码 
+,@tbname varchar(500)   --数据库.dbo.表名,如果不指定:.dbo.表名,则导出数据库的所有用户表 
+,@filename varchar(1000)  --导入/导出路径/文件名,如果@tbname参数指明是导出整个数据库,则这个参数是文件存放路径,文件名自动用表名.txt 
+,@isout bit      --1为导出,0为导入 
+as 
+declare @sql varchar(8000) 
+
+if @tbname like ’%.%.%’ --如果指定了表名,则直接导出单个表 
+begin 
+ set @sql=’bcp ’+@tbname 
+  +case when @isout=1 then ’ out ’ else ’ in ’ end 
+  +’ "’+@filename+’" /w’ 
+  +’ /S ’+@servername 
+  +case when isnull(@username,’’)=’’ then ’’ else ’ /U ’+@username end 
+  +’ /P ’+isnull(@password,’’) 
+ exec master..xp_cmdshell @sql 
+end 
+else 
+begin --导出整个数据库,定义游标,取出所有的用户表 
+ declare @m_tbname varchar(250) 
+ if right(@filename,1)<>’’ set @filename=@filename+’’ 
+
+ set @m_tbname=’declare #tb cursor for select name from ’+@tbname+’..sysobjects where xtype=’’U’’’ 
+ exec(@m_tbname) 
+ open #tb 
+ fetch next from #tb into @m_tbname 
+ while @@fetch_status=0 
+ begin 
+  set @sql=’bcp ’+@tbname+’..’+@m_tbname 
+   +case when @isout=1 then ’ out ’ else ’ in ’ end 
+   +’ "’+@filename+@m_tbname+’.txt " /w’ 
+   +’ /S ’+@servername 
+   +case when isnull(@username,’’)=’’ then ’’ else ’ /U ’+@username end 
+   +’ /P ’+isnull(@password,’’) 
+  exec master..xp_cmdshell @sql 
+  fetch next from #tb into @m_tbname 
+ end 
+ close #tb 
+ deallocate #tb  
+end 
+go 
+
+
+/**********************Excel导到Txt****************************************/ 
+想用 
+select * into opendatasource(...) from opendatasource(...) 
+实现将一个Excel文件内容导入到一个文本文件 
+
+假设Excel中有两列，第一列为姓名，第二列为很行帐号(16位) 
+且银行帐号导出到文本文件后分两部分，前8位和后8位分开。 
+
+
+如果要用你上面的语句插入的话,文本文件必须存在,而且有一行:姓名,银行账号1,银行账号2 
+然后就可以用下面的语句进行插入 
+注意文件名和目录根据你的实际情况进行修改. 
+
+insert into 
+opendatasource(’MICROSOFT.JET.OLEDB.4.0’ 
+,’Text;HDR=Yes;DATABASE=C:’ 
+)...[aa#txt] 
+--,aa#txt) 
+--*/ 
+select 姓名,银行账号1=left(银行账号,8),银行账号2=right(银行账号,8) 
+from 
+opendatasource(’MICROSOFT.JET.OLEDB.4.0’ 
+,’Excel 5.0;HDR=YES;IMEX=2;DATABASE=c:a.xls’ 
+--,Sheet1$) 
+)...[Sheet1$] 
+
+如果你想直接插入并生成文本文件,就要用bcp 
+
+declare @sql varchar(8000),@tbname varchar(50) 
+
+--首先将excel表内容导入到一个全局临时表 
+select @tbname=’[##temp’+cast(newid() as varchar(40))+’]’ 
+ ,@sql=’select 姓名,银行账号1=left(银行账号,8),银行账号2=right(银行账号,8) 
+into ’+@tbname+’ from 
+opendatasource(’’MICROSOFT.JET.OLEDB.4.0’’ 
+,’’Excel 5.0;HDR=YES;IMEX=2;DATABASE=c:a.xls’’ 
+)...[Sheet1$]’ 
+exec(@sql) 
+
+--然后用bcp从全局临时表导出到文本文件 
+set @sql=’bcp "’+@tbname+’" out "c:aa.txt" /S"(local)" /P"" /c’ 
+exec master..xp_cmdshell @sql 
+
+--删除临时表 
+exec(’drop table ’+@tbname) 
+
+
+用bcp将文件导入导出到数据库的存储过程: 
+
+
+/*--bcp-二进制文件的导入导出 
+
+ 支持image,text,ntext字段的导入/导出 
+ image适合于二进制文件;text,ntext适合于文本数据文件 
+
+ 注意:导入时,将覆盖满足条件的所有行 
+  导出时,将把所有满足条件的行也出到指定文件中 
+
+ 此存储过程仅用bcp实现 
+邹建 2003.08-----------------*/ 
+
+/*--调用示例 
+--数据导出 
+ exec p_binaryIO ’zj’,’’,’’,’acc_演示数据..tb’,’img’,’c:zj1.dat’ 
+
+--数据导出 
+ exec p_binaryIO ’zj’,’’,’’,’acc_演示数据..tb’,’img’,’c:zj1.dat’,’’,0 
+--*/ 
+if exists (select * from dbo.sysobjects where id = object_id(N’[dbo].[p_binaryIO]’) and OBJECTPROPERTY(id, N’IsProcedure’) = 1) 
+drop procedure [dbo].[p_binaryIO] 
+GO 
+
+Create proc p_binaryIO 
+@servename varchar (30),--服务器名称 
+@username varchar (30), --用户名 
+@password varchar (30), --密码 
+@tbname varchar (500),  --数据库..表名 
+@fdname varchar (30),  --字段名 
+@fname varchar (1000), --目录+文件名,处理过程中要使用/覆盖:@filename+.bak 
+@tj varchar (1000)=’’,  --处理条件.对于数据导入,如果条件中包含@fdname,请指定表名前缀 
+@isout bit=1   --1导出((默认),0导入 
+AS 
+declare @fname_in varchar(1000) --bcp处理应答文件名 
+ ,@fsize varchar(20)   --要处理的文件的大小 
+ ,@m_tbname varchar(50)  --临时表名 
+ ,@sql varchar(8000) 
+
+--则取得导入文件的大小 
+if @isout=1 
+ set @fsize=’0’ 
+else 
+begin 
+ create table #tb(可选名 varchar(20),大小 int 
+  ,创建日期 varchar(10),创建时间 varchar(20) 
+  ,上次写操作日期 varchar(10),上次写操作时间 varchar(20) 
+  ,上次访问日期 varchar(10),上次访问时间 varchar(20),特性 int) 
+ insert into #tb 
+ exec master..xp_getfiledetails @fname 
+ select @fsize=大小 from #tb 
+ drop table #tb 
+ if @fsize is null 
+ begin 
+  print ’文件未找到’ 
+  return 
+ end 
+
+end 
+
+--生成数据处理应答文件 
+set @m_tbname=’[##temp’+cast(newid() as varchar(40))+’]’ 
+set @sql=’select * into ’+@m_tbname+’ from( 
+ select null as 类型 
+ union all select 0 as 前缀 
+ union all select ’+@fsize+’ as 长度 
+ union all select null as 结束 
+ union all select null as 格式 
+ ) a’ 
+exec(@sql) 
+select @fname_in=@fname+’_temp’ 
+ ,@sql=’bcp "’+@m_tbname+’" out "’+@fname_in 
+ +’" /S"’+@servename 
+ +case when isnull(@username,’’)=’’ then ’’ 
+  else ’" /U"’+@username end 
+ +’" /P"’+isnull(@password,’’)+’" /c’ 
+exec master..xp_cmdshell @sql 
+--删除临时表 
+set @sql=’drop table ’+@m_tbname 
+exec(@sql) 
+
+if @isout=1 
+begin 
+ set @sql=’bcp "select top 1 ’+@fdname+’ from ’ 
+  +@tbname+case isnull(@tj,’’) when ’’ then ’’ 
+   else ’ where ’+@tj end 
+  +’" queryout "’+@fname 
+  +’" /S"’+@servename 
+  +case when isnull(@username,’’)=’’ then ’’ 
+   else ’" /U"’+@username end 
+  +’" /P"’+isnull(@password,’’) 
+  +’" /i"’+@fname_in+’"’ 
+ exec master..xp_cmdshell @sql 
+end 
+else 
+begin 
+ --为数据导入准备临时表 
+ set @sql=’select top 0 ’+@fdname+’ into ’ 
+  +@m_tbname+’ from ’ +@tbname 
+ exec(@sql) 
+
+ --将数据导入到临时表 
+ set @sql=’bcp "’+@m_tbname+’" in "’+@fname 
+  +’" /S"’+@servename 
+  +case when isnull(@username,’’)=’’ then ’’ 
+   else ’" /U"’+@username end 
+  +’" /P"’+isnull(@password,’’) 
+  +’" /i"’+@fname_in+’"’ 
+ exec master..xp_cmdshell @sql 
+  
+ --将数据导入到正式表中 
+ set @sql=’update ’+@tbname 
+  +’ set ’+@fdname+’=b.’+@fdname 
+  +’ from ’+@tbname+’ a,’ 
+  +@m_tbname+’ b’ 
+  +case isnull(@tj,’’) when ’’ then ’’ 
+   else ’ where ’+@tj end 
+ exec(@sql) 
+
+ --删除数据处理临时表 
+ set @sql=’drop table ’+@m_tbname 
+end 
+
+--删除数据处理应答文件 
+set @sql=’del ’+@fname_in 
+exec master..xp_cmdshell @sql 
+
+go 
+
+
+/** 导入文本文件 
+EXEC master..xp_cmdshell ’bcp "dbname..tablename" in c:DT.txt -c -Sservername -Usa -Ppassword’ 
+
+改为如下，不需引号 
+EXEC master..xp_cmdshell ’bcp dbname..tablename in c:DT.txt -c -Sservername -Usa -Ppassword’ 
+
+/** 导出文本文件 
+EXEC master..xp_cmdshell ’bcp "dbname..tablename" out c:DT.txt -c -Sservername -Usa -Ppassword’ 
+此句需加引号
+

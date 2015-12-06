@@ -1,0 +1,237 @@
+语法 
+　　CREATE PROC [ EDURE ] procedure_name [ ; number ] 
+[ { @parameter data_type } 
+[ VARYING ] [ = default ] [ OUTPUT ] 
+] [ ,...n ]  
+
+[ WITH 
+{ RECOMPILE | ENCRYPTION | RECOMPILE , ENCRYPTION } ]  
+
+[ FOR REPLICATION ]  
+
+AS sql_statement [ ...n ] 
+参数 
+
+procedure_name 
+
+新存储过程的名称。过程名必须符合标识符规则，且对于数据库及其所有者必须唯一。 
+要创建局部临时过程，可以在 procedure_name 前面加一个编号符 (#procedure_name)，要创建全局临时过程，可以在 procedure_name 前面加两个编号符 (##procedure_name)。完整的名称（包括 # 或 ##）不能超过 128 个字符。指定过程所有者的名称是可选的。 
+
+;number 
+
+是可选的整数，用来对同名的过程分组，以便用一 条 DROP PROCEDURE 语句即可将同组的过程一起除去。例如，名为 orders 的应用程序使用的过程可以命名为 orderproc;1、orderproc;2 等。DROP PROCEDURE orderproc 语句将除去整个组。如果名称中包含定界标识符，则数字不应包含在标识符中，只应在 procedure_name 前后使用适当的定界符。 
+
+@parameter 
+
+过程中的参数。在 CREATE PROCEDURE 语句中可以声明一个或多个参数。用户必须在执行过程时提供每个所声明参数的值（除非定义了该参数的默认值）。存储过程最多可以有 2.100 个参数。 
+
+使用 @ 符号作为第一个字符来指定参数名称。参数名称必须符合标识符的规则。每个过程的参数仅用于该过程本身；相同的参数名称可以用在其它过程中。默认情况下，参数只能代替常量，而不能用于代替表名、列名或其它数据库对象的名称。 
+data_type 
+
+参数的数据类型。所有数据类型（包括 text、ntext 和 image）均可以用作存储过程的参数。不过，cursor 数据类型只能用于 OUTPUT 参数。如果指定的数据类型为 cursor，也必须同时指定 VARYING 和 OUTPUT 关键字。 
+
+说明　对于可以是 cursor 数据类型的输出参数，没有最大数目的限制。 
+
+
+VARYING 
+
+指定作为输出参数支持的结果集（由存储过程动态构造，内容可以变化）。仅适用于游标参数。 
+
+default 
+
+参数的默认值。如果定义了默认值，不必指定该参数的值即可执行过程。默认值必须是常量或 NULL。如果过程将对该参数使用 LIKE 关键字，那么默认值中可以包含通配符（%、_、[] 和 [^]）。 
+
+OUTPUT 
+
+表明参数是返回参数。该选项的值可以返回给 EXEC[UTE]。使用 OUTPUT 参数可将信息返回给调用过程。Text、ntext 和 image 参数可用作 OUTPUT 参数。使用 OUTPUT 关键字的输出参数可以是游标占位符。 
+
+n 
+
+表示最多可以指定 2.100 个参数的占位符。 
+
+{RECOMPILE | ENCRYPTION | RECOMPILE, ENCRYPTION} 
+
+RECOMPILE 表明 SQL Server 不会缓存该过程的计划，该过程将在运行时重新编译。在使用非典型值或临时值而不希望覆盖缓存在内存中的执行计划时，请使用 RECOMPILE 选项。 
+
+ENCRYPTION 表示 SQL Server 加密 syscomments 表中包含 CREATE PROCEDURE 语句文本的条目。使用 ENCRYPTION 可防止将过程作为 SQL Server 复制的一部分发布。 
+
+
+
+说明　在升级过程中，SQL Server 利用存储在 syscomments 中的加密注释来重新创建加密过程。 
+
+
+FOR REPLICATION 
+
+指定不能在订阅服务器上执行为复制创建的存储过程。.使用 FOR REPLICATION 选项创建的存储过程可用作存储过程筛选，且只能在复制过程中执行。本选项不能和 WITH RECOMPILE 选项一起使用。 
+
+AS 
+
+指定过程要执行的操作。 
+
+sql_statement 
+
+过程中要包含的任意数目和类型的 Transact-SQL 语句。但有一些限制。 
+
+n 
+
+是表示此过程可以包含多条 Transact-SQL 语句的占位符。 
+
+注释 
+存储过程的最大大小为 128 MB。 
+用户定义的存储过程只能在当前数据库中创建（临时过程除外，临时过程总是在 tempdb 中创建）。在单个批处理中，CREATE PROCEDURE 语句不能与其它 Transact-SQL 语句组合使用。  
+
+默认情况下，参数可为空。如果传递 NULL 参数值并且该参数在 CREATE 或 ALTER TABLE 语句中使用，而该语句中引用的列又不允许使用 NULL，则 SQL Server 会产生一条错误信息。为了防止向不允许使用 NULL 的列传递 NULL 参数值，应向过程中添加编程逻辑或为该列使用默认值（使用 CREATE 或 ALTER TABLE 的 DEFAULT 关键字)。 
+
+建议在存储过程的任何 CREATE TABLE 或 ALTER TABLE 语句中都为每列显式指定 NULL 或 NOT NULL，例如在创建临时表时。ANSI_DFLT_ON 和 ANSI_DFLT_OFF 选项控制 SQL Server 为列指派 NULL 或 NOT NULL 特性的方式（如果在 CREATE TABLE 或 ALTER TABLE 语句中没有指定的话）。如果某个连接执行的存储过程对这些选项的设置与创建该过程的连接的设置不同，则为第二个连接创建的表列可能会有不同的为空性，并且 表现出不同的行为方式。如果为每个列显式声明了 NULL 或 NOT NULL，那么将对所有执行该存储过程的连接使用相同的为空性创建临时表。 
+
+在创建或更改存储过程时，SQL Server 将保存 SET QUOTED_IDENTIFIER 和 SET ANSI_NULLS 的设置。执行存储过程时，将使用这些原始设置。因此，所有客户端会话的 SET QUOTED_IDENTIFIER 和 SET ANSI_NULLS 设置在执行存储过程时都将被忽略。在存储过程中出现的 SET QUOTED_IDENTIFIER 和 SET ANSI_NULLS 语句不影响存储过程的功能。 
+
+其它 SET 选项（例如 SET ARITHABORT、SET ANSI_WARNINGS 或 SET ANSI_PADDINGS）在创建或更改存储过程时不保存。如果存储过程的逻辑取决于特定的设置，应在过程开头添加一条 SET 语句，以确保设置正确。从存储过程中执行 SET 语句时，该设置只在存储过程完成之前有效。之后，设置将恢复为调用存储过程时的值。这使个别的客户端可以设置所需的选项，而不会影响存储过程的逻辑。 
+ 
+
+说明　SQL Server 是将空字符串解释为单个空格还是解释为真正的空字符串，由兼容级别设置控制。 
+如果兼容级别小于或等于 65，SQL Server 就将空字符串解释为单个空格。 
+如果兼容级别等于 70，则 SQL Server 将空字符串解释为空字符串。 
+获得有关存储过程的信息 
+若要显示用来创建过程的文本，请在过程所在的数据库中执行 sp_helptext，并使用过程名作为参数。  
+
+
+说明　使用 ENCRYPTION 选项创建的存储过程不能使用 sp_helptext 查看。 
+
+
+若要显示有关过程引用的对象的报表，请使用 sp_depends。  
+
+若要为过程重命名，请使用 sp_rename。  
+
+
+引用对象 
+
+SQL Server 允许创建的存储过程引用尚不存在的对象。在创建时，只进行语法检查。执行时，如果高速缓存中尚无有效的计划，则编译存储过程以生成执行计划。只有在编译过 程中才解析存储过程中引用的所有对象。因此，如果语法正确的存储过程引用了不存在的对象，则仍可以成功创建，但在运行时将失败，因为所引用的对象不存在。 
+延迟名称解析和兼容级别 
+SQL Server 允许 Transact-SQL 存储过程在创建时引用不存在的表。这种能力称为延迟名称解析。不过，如果 Transact-SQL 存储过程引用了该存储过程中定义的表，而兼容级别设置（通过执行 sp_dbcmptlevel 来设置）为 65，则在创建时会发出警告信息。而如果在运行时所引用的表不存在，将返回错误信息。 
+
+执行存储过程 
+
+成功执行 CREATE PROCEDURE 语句后，过程名称将存储在 sysobjects 系统表中，而 CREATE PROCEDURE 语句的文本将存储在 syscomments 中。第一次执行时，将编译该过程以确定检索数据的最佳访问计划。 
+
+使用 cursor 数据类型的参数 
+
+存储过程只能将 cursor 数据类型用于 OUTPUT 参数。如果为某个参数指定了 cursor 数据类型，也必须指定 VARYING 和 OUTPUT 参数。如果为某个参数指定了 VARYING 关键字，则数据类型必须是 cursor，并且必须指定 OUTPUT 关键字。 
+
+
+
+说明　cursor 数据类型不能通过数据库 API（例如 OLE DB、ODBC、ADO 和 DB-Library）绑定到应用程序变量上。因为必须先绑定 OUTPUT 参数，应用程序才可以执行存储过程，所以带有 cursor OUTPUT 参数的存储过程不能通过数据库 API 调用。只有将 cursor OUTPUT 变量赋值给 Transact-SQL 局部 cursor 变量时，才可以通过 Transact-SQL 批处理、存储过程或触发器调用这些过程。 
+
+
+Cursor 输出参数 
+在执行过程时，以下规则适用于 cursor 输出参数：  
+
+对于只进游标，游标的结果集中返回的行只是那些存储过程执行结束时处于或超出游标位置的行，例如：  
+在过程中的名为 RS 的 100 行结果集上打开一个非滚动游标。  
+
+过程提取结果集 RS 的头 5 行。 
+
+过程返回到其调用者。 
+
+
+返回到调用者的结果集 RS 由 RS 的第 6 到 100 行组成，调用者中的游标处于 RS 的第一行之前。  
+对于只进游标，如果存储过程完成后，游标位于第一行的前面，则整个结果集将返回给调用批处理、存储过程或触发器。返回时，游标将位于第一行的前面。 
+
+
+对于只进游标，如果存储过程完成后，游标的位置超出最后一行的结尾，则为调用批处理、存储过程或触发器返回空结果集。  
+
+说明　空结果集与空值不同。 
+
+对于可滚动游标，在存储过程执行结束时，结果集中的所有行均会返回给调用批处理、存储过程或触发器。返回时，游标保留在过程中最后一次执行提取时的位置。 
+
+对于任意类型的游标，如果游标关闭，则将空值传递回调用批处理、存储过程或触发器。如果将游标指派给一个参数，但该游标从未打开过，也会出现这种情况。  
+
+说明　关闭状态只有在返回时才有影响。例如，可以在过程中关闭游标，稍后再打开游标，然后将该游标的结果集返回给调用批处理、存储过程或触发器。 
+ 
+临时存储过程 
+
+SQL Server 支持两种临时过程：局部临时过程和全局临时过程。局部临时过程只能由创建该过程的连接使用。全局临时过程则可由所有连接使用。局部临时过程在当前会话结束 时自动除去。全局临时过程在使用该过程的最后一个会话结束时除去。通常是在创建该过程的会话结束时。 
+
+临时过程用 # 和 ## 命名，可以由任何用户创建。创建过程后，局部过程的所有者是唯一可以使用该过程的用户。执行局部临时过程的权限不能授予其他用户。如果创建了全局临时过 程，则所有用户均可以访问该过程，权限不能显式废除。只有在 tempdb 数据库中具有显式 CREATE PROCEDURE 权限的用户，才可以在该数据库中显式创建临时过程（不使用编号符命名）。可以授予或废除这些过程中的权限。  
+
+
+说明　频繁使用临时存储过程会在 tempdb 中的系统表上产生争用，从而对性能产生负面影响。建议使用 sp_executesql 代替。sp_executesql 不在系统表中存储数据，因此可以避免这一问题。 
+
+自动执行存储过程 
+
+SQL Server 启动时可以自动执行一个或多个存储过程。这些存储过程必须由系统管理员创建，并在 sysadmin 固定服务器角色下作为后台过程执行。这些过程不能有任何输入参数。  
+
+对启动过程的数目没有限制，但是要注意，每个启动过程在执行时都会占用一个连接。如果必须在启动时执行多个过程，但不需要并行执行，则可以指定一个过程作为启动过程，让该过程调用其它过程。这样就只占用一个连接。 
+
+在启动时恢复了最后一个数据库后，即开始执行存储过程。若要跳过这些存储过程的执行，请将启动参数指定为跟踪标记 4022。如果以最低配置启动 SQL Server（使用 -f 标记），则启动存储过程也不会执行。 
+若要创建启动存储过程，必须作为 sysadmin 固定服务器角色的成员登录，并在 master 数据库中创建存储过程。 
+
+使用 sp_procoption 可以：  
+
+将现有存储过程指定为启动过程。 
+
+
+停止在 SQL Server 启动时执行过程。 
+
+
+查看 SQL Server 启动时执行的所有过程的列表。  
+存储过程嵌套 
+存储过程可以嵌套，即一个存储过程可以调用另一个存储过程。在被调用过程开始执行时，嵌套级将增加，在被调用过程执行结束后，嵌套级将减少。如果超出最大的嵌套级，会使整个调用过程链失败。可用 @@NESTLEVEL 函数返回当前的嵌套级。 
+
+若要估计编译后的存储过程大小，请使用下列性能监视计数器。  
+
+
+* 各种分类的高速缓存对象均可以使用这些计数器，包括特殊 sql、准备 sql、过程、触发器等。 
+
+sql_statement 限制 
+除了 SET SHOWPLAN_TEXT 和 SET SHOWPLAN_ALL 之外（这两个语句必须是批处理中仅有的语句），任何 SET 语句均可以在存储过程内部指定。所选择的 SET 选项在存储过程执行过程中有效，之后恢复为原来的设置。  
+ 
+如果其他用户要使用某个存储过程，那么在该存储过程内部，一些语句使用的对象名必须使用对象所有者的名称限定。这些语句包括：  
+
+ALTER TABLE 
+
+CREATE INDEX 
+
+CREATE TABLE 
+
+所有 DBCC 语句 
+
+DROP TABLE 
+
+DROP INDEX 
+
+TRUNCATE TABLE 
+
+UPDATE STATISTICS  
+权限 
+CREATE PROCEDURE 的权限默认授予 sysadmin 固定服务器角色成员和 db_owner 和 db_ddladmin 固定数据库角色成员。sysadmin 固定服务器角色成员和 db_owner 固定数据库角色成员可以将 CREATE PROCEDURE 权限转让给其他用户。执行存储过程的权限授予过程的所有者，该所有者可以为其它数据库用户设置执行权限。 
+示例 
+A. 使用带有复杂 SELECT 语句的简单过程 
+下面的存储过程从四个表的联接中返回所有作者（提供了姓名）、出版的书籍以及出版社。该存储过程不使用任何参数。 
+
+USE pubs 
+IF EXISTS (SELECT name FROM sysobjects  
+WHERE name = \’au_info_all\’ AND type = \’P\’) 
+DROP PROCEDURE au_info_all 
+GO 
+CREATE PROCEDURE au_info_all 
+AS 
+SELECT au_lname, au_fname, title, pub_name 
+FROM authors a INNER JOIN titleauthor ta 
+ON a.au_id = ta.au_id INNER JOIN titles t 
+ON t.title_id = ta.title_id INNER JOIN publishers p 
+ON t.pub_id = p.pub_id 
+GO 
+
+au_info_all 存储过程可以通过以下方法执行： 
+
+EXECUTE au_info_all 
+-- Or 
+EXEC au_info_all 
+
+如果该过程是批处理中的第一条语句，则可使用： 
+
+au_info_all  
+
+
+

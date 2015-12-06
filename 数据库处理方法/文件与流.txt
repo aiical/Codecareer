@@ -1,0 +1,219 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using System.IO;
+
+namespace Test
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            text t1=new text();
+            t1.writefile();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            text t1 = new text();
+            t1.readfile();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            text t1 = new text();
+            t1.filestreamproperty();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            text t1 = new text();
+            t1.binaryreader1();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            text t1 = new text();
+            t1.binarywriter1();
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            text t1 = new text();
+            t1.streamwriter();
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            text t1 = new text();
+            t1.streamreader();
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            //写入
+ 
+           string Textinfo= this.textBox2.Text;
+           File.AppendAllText("F:/1.txt", Textinfo);//没有此文件会自动创建
+           /*
+            //判断文件是否存在如果不存在就创建一个新的
+            //存在就为真 不存在就为假
+           if (!File.Exists("F:/1.txt"))
+           {
+               File.Create("F:/1.txt");
+           }
+            */
+            //文件存在就去读取它
+           if (File.Exists("F:/1.txt"))
+           {
+               this.label1.Text = File.ReadAllText("F:/1.txt");
+           }
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            //label1.Text = Directory.GetCurrentDirectory();
+            if (Directory.Exists("F:/59"))
+            {
+                label1.Text = "i have a pan";
+            }
+            else 
+            {
+                Directory.CreateDirectory("F:/59");
+            }
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+            if(Directory.Exists("F:/58"))
+            {
+            string[] menu;
+
+            menu = Directory.GetFiles("F:/58");
+            foreach (string sdir in menu)
+            {
+                label1.Text+="'"+sdir+"'+<br>";
+            }
+            }
+        }
+
+
+        //搜索功能
+
+        public void findfiles(DirectoryInfo dir,string filename) 
+        {
+            FileInfo[] files = dir.GetFiles(filename);
+            if(files.Length!=0)
+            {
+                foreach (FileInfo afile in files) 
+                {
+                    ListViewItem lvi;
+                    string[] s = new string[] { afile.Name, afile.Directory.FullName,
+                        afile.Length.ToString(), afile.LastWriteTime.ToString() };
+                    lvi = new ListViewItem(s);
+                    listView1.Items.Add(lvi);
+                }
+            }
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            if(dirs.Length!=0)
+            {
+                foreach(DirectoryInfo adir in dirs )
+                {
+                    findfiles(adir,filename);
+                }
+            }
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            string s = textBox1.Text;
+            if (s == "")
+            {
+                MessageBox.Show("文件名不能为空");
+            }
+            else 
+            {
+                int n = s.IndexOf(".");
+                if(n==-1)
+                {
+                    s += ".*";
+                    if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+                    {
+                        DirectoryInfo dir = new DirectoryInfo(folderBrowserDialog1.SelectedPath.ToString());
+                        findfiles(dir,s);
+                    }
+                }
+             }
+        }
+
+
+        //拆分文档
+        public void splitfile(string f1,string f2,int f2size) 
+        {
+            FileStream infile = new FileStream(f1,FileMode.Open,FileAccess.Read);
+            bool mark = true;
+            int n, i=0;
+            byte[] buffer=new byte[f2size];
+            FileStream outfile = null;
+            while(mark)
+            {
+                if ((n = infile.Read(buffer, 0, f2size)) > 0)
+                {
+                    outfile = new FileStream(f2 + i.ToString() + ".txt", FileMode.Create, FileAccess.Write);
+                    outfile.Write(buffer, 0, n);
+                    i++;
+                    outfile.Close();
+                }
+                else
+                    mark = false;
+            }
+            infile.Close();
+        }
+        //合并文档
+        public void mergefile(string f1,string f2,int f2num) 
+        {
+            FileStream outfile = new FileStream(f1,FileMode.Create,FileAccess.Write);
+            long n, l;
+            byte[] buffer;
+            for (int i = 0; i < f2num; i++)
+            {
+                FileStream infile = new FileStream(f2+i.ToString()+".txt",FileMode.Open,FileAccess.Read);
+                l = infile.Length;
+                buffer = new byte[l];
+                n = infile.Read(buffer,0,(int)l);
+                outfile.Write(buffer, 0, (int)n);
+                infile.Close(); 
+            }
+            outfile.Close();
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+            string f1 = textBox3.Text;
+            string f2 = textBox4.Text;
+            int f2size = Convert.ToInt32(textBox5.Text);
+            splitfile(f1, f2,f2size);
+        }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+            string f1 = textBox6.Text;
+            string f2 = textBox7.Text;
+            int f2size = Convert.ToInt32(textBox8.Text);
+            mergefile(f1,f2,f2size);
+        }
+

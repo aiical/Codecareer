@@ -1,0 +1,197 @@
+使用C#创建SQL Server的存储过程2008-01-10 01:33本文摘录自：http://www.knowsky.com/
+
+介绍
+通常，开发人员使用的是T-SQL来创建SQL Server的存储过程、函数和触发器。 而现在的SQL Server 2005已经完全支持.NET通用语言运行时（CLR）了。 这就意味着，你可以使用.NET的语言，如C#、VB.NET之类的来开发SQL Server的存储过程、函数和触发器。 SQL Server 和 CLR 的集成给我们带来了n多好处，如实时编译、类型安全、增强的安全性以及增强的编程模型等。 本文中，我将向大家演示如何使用C#创建SQL Server的存储过程。
+
+
+背景
+我们在使用SQL Server存储过程时，最常做的工作就是从数据库中读取或保存数据。 其常用应用如下：
+    ·执行一些简单的逻辑，没有任何返回值。 也没有输出参数。
+    ·执行一些逻辑，并通过一个或更多的输出参数返回结果。
+    ·执行一些逻辑，并返回从表中读取的一条或多条记录。
+    ·执行一些逻辑，并返回一行或多行记录。 这些记录不是从表中读取的，而是你自定义的一些数据行。
+
+为了演示如何用C#开发出这几种应用的SQL Server存储过程，我将一个一个地举出示例。
+
+
+启用CLR集成
+在你开始用C#写存储过程之前，必须要启用你的SQL Server的CLR集成特性。 默认情况它是不启用的。 打开你的SQL Server Management Studio并执行如下脚本。
+sp_configure 'clr enabled', 1 
+GO 
+RECONFIGURE 
+GO 
+这里，我们执行了系统存储过程“sp_configure”，为其提供的两个参数分别为：“clr enabled”和“1”。如果要停用CLR集成的话也是执行这个存储过程，只不过第二个参数要变为“0”而已。另外，为了使新的设置产生效果，不要忘记调用“RECONFIGURE”。
+
+
+SQL Server项目
+现在打开Visual Studio，并从文件菜单中选择“新建项目”。 在“新建项目”对话框中选择“Visual C#”下的“Database”。 然后选择“SQL Server项目”模板。 
+
+
+起好项目名称后就单击“确定”按钮。 
+
+很快，你所创建的项目就要求你选择一个SQL Server数据库。
+
+
+按照提示一步一步地做就好了，就算你选择了取消，也可以在“项目”–“属性”对话框中再一次选择数据库。 举个例子，假如你的电脑上有一个Northwind数据库，那么就在“新建数据库引用”对话框中选中它，然后单击“确定”按钮。 之后，SQL Server项目在部署的时候就会将我们开发的存储过程写入这个数据库（继续往后看你就清楚是怎么回事了）。
+
+接下来，右键单击你新建的这个项目，选择“添加”-“存储过程”。 然后将会出现如下图所示的对话框：
+
+
+选择“存储过程”模板，并起一个合适的名字，然后单击“添加”按钮。 
+
+添加完后你就会发现，实际上这是创建了一个已经导入了需要用到的命名空间的类。
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Data.SqlTypes;
+using Microsoft.SqlServer.Server;
+注意一下加粗显示的命名空间（译者注：后两个using）。 System.Data.SqlTypes命名空间包含了很多不同的类型，它们可以用来代替SQL Server的数据类型。 Microsoft.SqlServer.Server命名空间下的类负责SQL Server的CLR集成。
+
+
+没有返回值的存储过程
+在这一节中，我们将会看到如何写一个执行了一些逻辑，但是却没有任何返回值和输出参数的存储过程。 在这个例子里，我们将创建一个名为“ChangeCompanyName”的存储过程，它用来修改Customers表中CompanyName字段的值。 这个存储过程需要两个参数 – CustomerID（需要更改公司名称的客户的ID）和CompanyName（新的公司名称）。 “ChangeCompanyName”存储过程完成后的代码如下：
+[SqlProcedure]
+public static void ChangeCompanyName
+(SqlString CustomerID, SqlString CompanyName)
+{
+SqlConnection cnn = new SqlConnection
+("context connection=true");
+cnn.Open();
+SqlCommand cmd = new SqlCommand();
+cmd.Connection = cnn;
+cmd.CommandText = "update customers set 
+companyname=@p1 where customerid=@p2";
+SqlParameter p1 = new SqlParameter("@p1", CompanyName);
+SqlParameter p2 = new SqlParameter("@p2", CustomerID);
+cmd.Parameters.Add(p1);
+cmd.Parameters.Add(p2);
+int i=cmd.ExecuteNonQuery();
+cnn.Close();
+SqlContext.Pipe.Send(i.ToString());
+}
+仔细看一下这个ChangeCompanyName()方法。 它是一个静态方法并且没有返回值（void）。 它需要两个名为CustomerID和CompanyName的参数。 请注意这两个参数的数据类型都是SqlString。 SqlString可以用来代替SQL Server中的nvarchar数据类型。 这个方法用了一个[SqlProcedure]属性来修饰。 该属性用于标记ChangeCompanyName()方法是一个SQL Server存储过程。
+
+在方法内我们创建了一个SqlConnection对象，并设置其连接字符串为“context connection = true”。 “上下文连接”可以让你使用当前登录到数据库的用户作为你的登录数据库的验证信息。 本例中，ChangeCompanyName()方法将会转换为存储过程，然后保存到Northwind数据库里。 所以在这里的“上下文连接”指的就是Northwind数据库。 这样你就不需要再写任何关于登录数据库的验证信息了。
+
+接下来是打开数据库连接。 然后通过设置SqlCommand对象的Connection和CommandText属性，让其执行更新操作。 同时，我们还需要设置两个参数。 这样通过调用ExecuteNonQuery()方法就可以执行更新操作了。 再接下来就是关闭连接。
+
+最后，将ExecuteNonQuery()方法的返回值发送到客户端。 当然你也可以不做这一步。 现在我们来了解一下SqlContext类的使用。 SqlContext类用于在服务端和客户端之间传递处理结果。 本例使用了Send()方法发送一个字符串返回给调用者。
+
+
+返回从表中读取的一条或多条记录的存储过程
+我们在使用存储过程时，经常会SELECT一条或多条记录。 你可以采用两种方法来创建这样的存储过程。 
+
+首先我们创建一个名为GetAllCustomers()的方法，代码如下：
+[SqlProcedure]
+public static void GetAllCustomers()
+{
+SqlConnection cnn = new SqlConnection
+("context connection=true");
+cnn.Open();
+SqlCommand cmd = new SqlCommand();
+cmd.Connection = cnn;
+cmd.CommandText = "select * from customers";
+SqlDataReader reader = cmd.ExecuteReader();
+SqlContext.Pipe.Send(reader);
+reader.Close();
+cnn.Close();
+}
+这个GetAllCustomers()方法用了一个[SqlProcedure]属性来修饰。 在方法内创建一个SqlConnection和一个SqlCommand对象。 然后使用ExecuteReader()方法来执行SELECT语句。 接下来用Send()方法将取得的SqlDataReader数据发送到客户端。 最后就是关闭SqlDataReader和SqlConnection。 在这种方法中，是我们自己创建的SqlDataReader。 其实，我们也可以把这个任务交给SqlContext类去完成，代码如下：
+[SqlProcedure]
+public static void GetCustomerByID
+(SqlString CustomerID)
+{
+SqlConnection cnn = new SqlConnection
+("context connection=true");
+cnn.Open();
+SqlCommand cmd = new SqlCommand();
+cmd.Connection = cnn;
+cmd.CommandText = "select * from customers 
+where customerid=@p1";
+SqlParameter p1 = new SqlParameter("@p1", CustomerID);
+cmd.Parameters.Add(p1);
+SqlContext.Pipe.ExecuteAndSend(cmd);
+cnn.Close();
+}
+GetCustomerByID()方法需要一个参数 – CustomerID，它将从Customers表中返回某个customer的记录。 这个方法内的代码，除了ExecuteAndSend()方法外，你应该都已经比较熟悉了。 ExecuteAndSend()方法接收一个SqlCommand对象作为参数，执行它就会返回数据集给客户端。
+
+
+有输出参数的存储过程
+我们在使用存储过程时，经常会通过输出参数返回一个经过计算的值。 所以，现在让我们来看一看如何创建具有一个或多个输出参数的存储过程。
+[SqlProcedure]
+public static void GetCompanyName
+(SqlString CustomerID,out SqlString CompanyName)
+{
+SqlConnection cnn = new SqlConnection
+("context connection=true");
+cnn.Open();
+SqlCommand cmd = new SqlCommand();
+cmd.Connection = cnn;
+cmd.CommandText = "select companyname from 
+customers where customerid=@p1";
+SqlParameter p1 = new SqlParameter
+("@p1", CustomerID);
+cmd.Parameters.Add(p1);
+object obj = cmd.ExecuteScalar();
+cnn.Close();
+CompanyName = obj.ToString();
+}
+这是一个名为GetCompanyName()的方法，它需要两个参数。 第一个参数是CustomerID，它是一个输入参数；第二个参数是CompanyName，它是一个输出参数（用关键字out来指明）。 这两个参数都是SqlString类型的。 GetCompanyName()方法会接收一个CustomerID参数，然后返回CompanyName（作为输出参数）。
+
+该方法内的代码首先设置了SqlConnection和SqlCommand对象。 然后，使用ExecuteScalar()方法来执行SELECT语句。 ExecuteScalar()方法返回的值是一个object类型，它其实就是公司名称。 最后将输出参数CompanyName设置为这个值。
+
+
+返回一行或多行自定义数据的存储过程
+我们在使用存储过程时，更多的还是从某些表中读取数据。 但是，某些情况下我们需要的数据可能不在任何表里。 例如，你可能会基于某些计算来生成一个数据表格。 因为它的数据不是从表中获得的，所以上面的方法就不在适用了。 幸运的是，SQL Server的CLR集成特性给我们提供了一个解决这个问题的方法。 请看如下代码：
+[SqlProcedure]
+public static void GetCustomRow()
+{
+SqlMetaData[] metadata = new SqlMetaData[2];
+metadata[0] = new SqlMetaData
+("CustomerID", SqlDbType.NVarChar,50);
+metadata[1] = new SqlMetaData
+("CompanyName", SqlDbType.NVarChar,50);
+SqlDataRecord record = new SqlDataRecord(metadata);
+record.SetString(0, "ALFKI");
+record.SetString(1, "Alfreds Futterkiste");
+SqlContext.Pipe.Send(record);
+}
+GetCustomRow()方法会返回一条记录并发送给客户端。 这个方法首先声明了一个SqlMetaData对象。 当你要用到自定义列的时候，就可以使用这个SqlMetaData类。 在我们的示例中，创建了两个类型为NVarChar，长度为50的列。然后创建了一个SqlDataRecord对象。 SqlDataRecord类可以用来表示一个自定义行。 它的构造函数需要一个SqlMetaData数组作为参数。 SqlDataRecord对象的SetString()方法用来设置列的值。 另外，还有许多不同的类似SetString()这样的方法，可以用来处理不同的数据类型。 最后，调用Send()方法将SqlDataRecord对象发送到客户端。
+
+在上面的示例中，我们只返回了一行数据给调用者。 那么，如果要返回多行呢？ 请看下面的代码：
+[SqlProcedure]
+public static void GetMultipleCustomRows()
+{
+SqlMetaData[] metadata = new SqlMetaData[2];
+metadata[0] = new SqlMetaData
+("CustomerID", SqlDbType.NVarChar, 50);
+metadata[1] = new SqlMetaData
+("CompanyName", SqlDbType.NVarChar, 50);
+SqlDataRecord record = new SqlDataRecord(metadata);
+SqlContext.Pipe.SendResultsStart(record);
+record.SetString(0, "ALFKI");
+record.SetString(1, "Alfreds Futterkiste");
+SqlContext.Pipe.SendResultsRow(record);
+record.SetString(0, "ANATR");
+record.SetString(1, "Ana Trujillo Emparedados y helados");
+SqlContext.Pipe.SendResultsRow(record);
+SqlContext.Pipe.SendResultsEnd();
+}
+GetMultipleCustomRows()方法将会返回多个SqlDataRecord对象到客户端。 接下来创建自定义列和设置列的值都和之前的例子一样。 但是，我们使用的是SendResutlsStart()方法来传输数据。 SendResultsRow()方法也是发送一个SqlDataRecord对象到客户端，但是我们可以多次调用它，从而做到发送多条记录。 最后，调用SendResultsEnd()方法用来标记已经完成数据传输操作。
+
+我们已经开发完了存储过程。 现在就可以将这个项目编译为一个程序集（.DLL）。 但是我们的工作并没有到此结束。 我们还需要部署这个程序集和存储过程到SQL Server数据库。 有两种方法可以完成这个工作 – 手动和自动。 手动方法是使用T-SQL语句注册你的程序集，并将存储过程部署到SQL Server数据库中。 在本例中，我将使用自动的方法来部署存储过程到SQL Server数据库。
+
+右键单击你的项目，然后在菜单中选择“部署”选项。
+
+
+如此就会自动地完成注册程序集和部署存储过程的工作。 注意，只有在你创建项目时添加了数据库引用的时候，才会出现“部署”选项。 如果因为某些原因你没能添加数据库引用，那么你可以通过项目属性对话框来设置它。
+
+
+如果你在SQL Server Management Studio查看Northwind数据库的话，那么就应该可以看到和下图相似的结果。
+
+
+注意，在存储过程节点下出现了我们创建的所有方法（有“锁”图标的），并且在程序集节点下出现了我们的程序集。 
+
+就是这些东西，很简单吧。 现在你就可以在你的程序中调用这些存储过程了。 你也可以在SQL Server Management Studio中来测试它们。
+
+ 

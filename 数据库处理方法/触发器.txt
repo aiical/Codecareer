@@ -1,0 +1,102 @@
+SQL 2000触发器原理(2009-04-09 12:49:20)标签：it    
+INSERT触发器的工作过程
+
+可以定义一个无论何时用INSERT语句向表中插入数据时都会执行的触发器。
+
+ 
+
+当触发INSERT触发器时，新的数据行就会被插入到触发器表和inserted表中。inserted表是一个逻辑表，它包含了已经插入的数据行的一个副本。inserted表包含了INSERT语句中已记录的插入动作。inserted表还允许引用由初始化INSERT语句而产生的日志数据。触发器通过检查inserted表来确定是否执行触发器动作或如何执行它。inserted表中的行总是触发器表中一行或多行的副本。
+
+ 
+
+日志记录了所有修改数据的动作(INSERT、UPDATE和DELETE语句)，但在事务日志中的信息是不可读的。然而，inserted表允许你引用由INSERT语句引起的日志变化，这样就可以将插入数据与发生的变化进行比较，来验证它们或采取进一步的动作。也可以直接引用插入的数据，而不必将它们存储到变量中。
+
+---------------------------------------------------------------------------------------------------------------
+DELETE触发器的工作过程
+
+ 
+
+当触发DELETE触发器后，从受影响的表中删除的行将被放置到一个特殊的deleted表中。deleted表是一个逻辑表，它保留已被删除数据行的一个副本。deleted表还允许引用由初始化DELETE语句产生的日志数据。
+
+ 
+
+使用DELETE触发器时，需要考虑以下的事项和原则：
+
+ 
+
+l   当某行被添加到deleted表中时，它就不再存在于数据库表中；因此，deleted表和数据库表没有相同的行。
+
+ 
+
+l  创建deleted表时，空间是从内存中分配的。deleted表总是被存储在高速缓存中。
+
+ 
+
+l  为DELETE动作定义的触发器并不执行TRUNCATE TABLE语句，原因在于日志不记录TRUNCATE TABLE语句。
+
+
+---------------------------------------------------------------------------------------------------------------
+
+
+UPDATE触发器的工作过程
+ 可将UPDATE语句看成两步操作：即捕获数据前像(before image)的DELETE语句，和捕获数据后像(after image)的INSERT语句。当在定义有触发器的表上执行UPDATE语句时，原始行（前像）被移入到deleted表，更新行（后像）被移入到inserted表。
+
+ 
+
+触发器检查deleted表和inserted表以及被更新的表，来确定是否更新了多行以及如何执行触发器动作。
+
+ 
+
+可以使用IF UPDATE语句定义一个监视指定列的数据更新的触发器。这样，就可以让触发器容易的隔离出特定列的活动。当它检测到指定列已经更新时，触发器就会进一步执行适当的动作，例如发出错误信息指出该列不能更新，或者根据新的更新的列值执行一系列的动作语句。
+
+-------------------------------------------------------------------------------------
+
+实例:
+
+
+--insert 触发器
+create trigger tri_insert
+on student
+for insert
+as
+declare @student_id char(10)
+select @student_id=s.student_id from
+student s inner join inserted i
+on s.student_id=i.student_id
+if @student_id='0000000001'
+begin
+    raiserror('不能插入1的学号!',16,8)
+    rollback tran
+end
+go
+
+
+
+--update触发器
+create trigger tri_update
+on student
+for update
+as
+if update(student_id)
+begin
+    raiserror('学号不能修改!',16,8)
+    rollback tran
+end
+go
+
+
+
+ 
+
+--delete触发器
+create trigger tri_delete
+on student
+for delete
+as
+declare @student_id varchar(10)
+select @student_id=student_id from deleted
+if @student_id='admin'
+begin
+    raiserror('错误',16,8)
+    rollback tran
+end

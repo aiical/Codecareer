@@ -1,0 +1,68 @@
+  要在应用程序中访问数据库，一般性的步骤是：首先声明一个数据库连接sqlconnection，然后声明一个数据库命令sqlcommand，用来执行sql语句和存储过程。有了这两个对象后，就可以根据自己的需要采用不同的执行方式达到目的。需要补充的是，不要忘记在页面上添加如下的引用语句：using system.data.sqlclient。
+
+  就执行存储过程来说，如果执行的是第一类存储过程，那么就要用一个dataadapter将结果填充到一个dataset中，然后就可以使用数据网格控件将结果呈现在页面上了；如果执行的是第二和第三种存储过程，则不需要此过程，只需要根据特定的返回判定操作是否成功完成即可。
+
+  (1)执行一个没有参数的存储过程的代码如下：
+
+
+
+sqlconnection conn=new sqlconnection(“connectionstring”);
+sqldataadapter da = new sqldataadapter();
+da.selectcommand = new sqlcommand();
+da.selectcommand.connection = conn;
+da.selectcommand.commandtext = "nameofprocedure";
+da.selectcommand.commandtype = commandtype.storedprocedure;
+
+
+  然后只要选择适当的方式执行此处过程，用于不同的目的即可。
+
+  (2)执行一个有参数的存储过程的代码如下（我们可以将调用存储过程的函数声明为exeprocedure(string inputdate)）：
+
+
+
+sqlconnection conn=new sqlconnection(“connectionstring”);
+sqldataadapter da = new sqldataadapter();
+da.selectcommand = new sqlcommand();
+da.selectcommand.connection = conn;
+da.selectcommand.commandtext = "nameofprocedure";
+da.selectcommand.commandtype = commandtype.storedprocedure;
+（以上代码相同，以下为要添加的代码）
+param = new sqlparameter("@parametername", sqldbtype.datetime);
+param.direction = parameterdirection.input;
+param.value = convert.todatetime(inputdate);
+da.selectcommand.parameters.add(param);
+
+
+  这样就添加了一个输入参数。若需要添加输出参数：
+
+param = new sqlparameter("@parametername", sqldbtype.datetime);
+param.direction = parameterdirection.output;
+param.value = convert.todatetime(inputdate);
+da.selectcommand.parameters.add(param);
+
+  若要获得参储过程的返回值：
+
+param = new sqlparameter("@parametername", sqldbtype.datetime);
+param.direction = parameterdirection.returnvalue;
+param.value = convert.todatetime(inputdate);
+da.selectcommand.parameters.add(param);
+
+  从上面的代码我们可以看出，当存储过程比较多或者存储过程的参数比较多时，这种方法会大大影响开发的速度；另外一方面，如果项目比较大，那么这些用于数据库逻辑的函数在以后的维护中也是一个很大的负担。那么，有没有一种改进的方法可以解决这个问题呢？想到在执行没有参数的存储过程时只需要传入一个存储过程的名字就可以调用相应的存储过程，而且在sqlserver数据库中我们可以直接在查询分析器中敲入“存储过程名（参数列表）”样的字符串就可以执行存储过程，那么，是否可以把这种思想应用到应用程序中呢？
+
+  于是在编译器中键入相应代码。这些代码是在调用不带参数的存储过程的代码的基础上改的。具体代码如下：
+
+
+
+sqlconnection conn=new sqlconnection(“connectionstring”);
+sqldataadapter da = new sqldataadapter();
+da.selectcommand = new sqlcommand();
+da.selectcommand.connection = conn;
+da.selectcommand.commandtext = "nameofprocedure（’para1’,’para2’,para3）";
+da.selectcommand.commandtype = commandtype.storedprocedure;
+
+
+  为了使代码更具有代表性，要调用的存储过程的第一个和第二个参数都为字符串类型，第三个参数为整型。执行以后发现，完全可以达到预期的效果！
+
+  两种调用方法的比较
+  
+  通过比较我们可以看到，第二种方法具有一个很明显的优点，那就是可以提高开发速度，节省开发时间，而且代码容易维护，在一定程度上也减少了系统大小。但是，由于对存储过程参数的处理比较笼统，如果要获取输出参数或者得到存储过程的返回值，这种方法就不能满足需要了。虽然如此，但是，这种方法毕竟可以让开发人员少些很大一部分的代码。如果不需要获取输出参数和返回值，那么几乎可以做到“一劳永逸”。因此在实际的程序开发中，这种方法还是具有一定的实用价值的。

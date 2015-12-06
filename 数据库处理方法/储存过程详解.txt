@@ -1,0 +1,213 @@
+Sql Server的存储过程是一个被命名的存储在服务器上的Transacation-Sql语句集合,是封装重复性工作的一种方法,它支持用户声明的变量、条件执行和其他强大的编程功能。
+
+存储过程相对于其他的数据库访问方法有以下的优点：
+
+(1)重复使用。存储过程可以重复使用，从而可以减少数据库开发人员的工作量。
+
+(2)提高性能。存储过程在创建的时候就进行了编译，将来使用的时候不用再重新编译。一般的SQL语句每执行一次就需要编译一次，所以使用存储过程提高了效率。
+
+(3)减少网络流量。存储过程位于服务器上，调用的时候只需要传递存储过程的名称以及参数就可以了，因此降低了网络传输的数据量。
+
+(4)安全性。参数化的存储过程可以防止SQL注入式的攻击，而且可以将Grant、Deny以及Revoke权限应用于存储过程。
+
+存储过程一共分为了三类：用户定义的存储过程、扩展存储过程以及系统存储过程。
+
+其中，用户定义的存储过程又分为Transaction-SQL和CLR两种类型。
+
+Transaction-SQL 存储过程是指保存的Transaction-SQL语句集合，可以接受和返回用户提供的参数。
+
+CLR存储过程是指对.Net Framework公共语言运行时(CLR)方法的引用，可以接受和返回用户提供的参数。他们在.Net Framework程序集中是作为类的公共静态方法实现的。(本文就不作介绍了)
+
+创建存储过程的语句如下：
+
+
+以下为引用的内容：
+
+CREATE { PROC | PROCEDURE } [schema_name.] procedure_name [ ; number ] 
+    [ { @parameter [ type_schema_name. ] data_type } 
+        [ VARYING ] [ = default ] [ [ OUT [ PUT ] 
+    ] [ ,n ] 
+[ WITH <procedure_option> [ ,n ]
+[ FOR REPLICATION ] 
+AS { <sql_statement> [;][ n ] | <method_specifier> }
+[;]
+<procedure_option> ::= 
+    [ ENCRYPTION ]
+    [ RECOMPILE ]
+    [ EXECUTE_AS_Clause ]
+
+<sql_statement> ::= 
+{ [ BEGIN ] statements [ END ] }
+
+<method_specifier> ::=
+EXTERNAL NAME assembly_name.class_name.method_name
+ 
+
+
+     [schema_name]: 代表的是存储过程所属的架构的名称
+
+      例如：
+
+            Create Schema yangyang8848      
+            Go
+            Create Proc yangyang8848.AllGoods
+            As Select * From Master_Goods
+            Go
+
+            执行：Exec AllGoods 发生错误。
+
+            执行：Exec yangyang8848.AllGoods 正确执行。
+
+      [；Number]: 用于对同名过程进行分组的可选整数。使用一个 DROP PROCEDURE 语句可将这些分组过程一起删除。
+
+      例如：
+
+            Create Proc S1 ;1
+            AS
+                   Select * From Master_Goods
+            Go
+            Create Proc S1 ;2
+            As 
+                   Select * From Master_Location
+            Go
+            创建完毕了两个存储过程。它们在同一个组S1里，如果执行Exec S1 则存储过程默认执行 Exec S1 ;1 。如果我们想得到所有据点信息则需要执行Exec S1 ;2。当我们要删除存储过程的时候，只能执行Drop Exec S1 则该组内所有的存储过程被删除。
+
+      [@ parameter]: 存储过程中的参数，除非将参数定义的时候有默认值或者将参数设置为等于另一个参数，否则用户必须在调用存储过程的时候为参数赋值。
+
+      存储过程最多有2100个参数。
+
+      例如：
+
+      Create Proc yangyang8848.OneGoods
+      @GoodsCode varchar(10)
+      As 
+             Select * From Master_Goods Where GoodsCode = @GoodsCode
+      Go
+
+      调用的代码：
+
+      Declare @Code varchar(10)
+      Set @Code = '0004'
+      Exec yangyang8848.OneGoods @Code
+
+      在参数的后边加入Output 表明该参数为输出参数。
+
+      Create Proc yangyang8848.OneGoods
+      @GoodsCode2 varchar(10) output,@GoodsCode varchar(10) = '0011'
+      As 
+             Select * From Master_Goods Where GoodsCode = @GoodsCode
+             Set @GoodsCode2 = '0005'
+      Go
+
+      调用方法：
+      Declare @VV2 varchar(10)
+      Exec yangyang8848.OneGoods  @Code out
+
+      注意：如果存储过程的两个参数一个有默认值一个没有，那么我们要把有默认值得放在后边，不然会出问题哦~~
+
+      细心的朋友，可能看到上边的语句有一些不同，比如，存储过程用的是output，而调用语句用的是out。我要告诉您，两者是一样的。
+
+      
+
+      [RECOMPILE]：指示数据库引擎 不缓存该过程的计划，该过程在运行时编译。如果指定了 FOR REPLICATION，则不能使用此选项。对于 CLR 存储过程，不能指定 RECOMPILE。 
+ 
+
+      这个说一个非常好用的函数 OBJECT_ID ：返回架构范围内对象的数据库对象标识号。 
+
+      例如：我们创建存储过程时，可以如下写代码
+
+      If Object_ID('yangyang8848.OneGoods') Is Not Null
+             Drop Proc yangyang8848.OneGoods
+      Go
+
+      Create Proc yangyang8848.OneGoods
+      @GoodsCode2 varchar(10) out,@GoodsCode varchar(10) = '0011'
+      As 
+             Select * From Master_Goods Where GoodsCode = @GoodsCode
+             Set @GoodsCode2 = '0005'
+      Go
+
+      针对于上边的这个存储过程，我们调用以下SQL查询
+
+      Select definition From sys.sql_modules
+            Where object_id = Object_ID('yangyang8848.OneGoods');
+
+      我们是可以查到结果的。
+    可是如果我们对该存储过程加入[ ENCRYPTION ] 那么你将无法看到任何结果
+
+      If Object_ID('yangyang8848.OneGoods') Is Not Null
+             Drop Proc yangyang8848.OneGoods
+      Go
+
+      Create Proc yangyang8848.OneGoods
+      @GoodsCode2 varchar(10) out,@GoodsCode varchar(10) = '0011'
+
+      With Encryption
+      As 
+             Select * From Master_Goods Where GoodsCode = @GoodsCode
+             Set @GoodsCode2 = '0005'
+      Go
+
+      然后我们查询 sys.sql_modules 目录视图，将返回给你Null。
+
+      然后我们执行以下SQL: Exec sp_helptext 'yangyang8848.OneGoods'
+
+      你将得到以下结果：The text for object 'yangyang8848.OneGoods' is encrypted.
+
+      说到这里你应该明白了，参数[ ENCRYPTION ]：是一种加密的功能， 将 CREATE PROCEDURE 语句的原始文本转换为模糊格式。模糊代码的输出在 SQL Server 2005 的任何目录视图中都不能直接显示。对系统表或数据库文件没有访问权限的用户不能检索模糊文本。但是，可通过 DAC 端口访问系统表的特权用户或直接访问数据库文件的特权用户可使用此文本。此外，能够向服务器进程附加调试器的用户可在运行时从内存中检索已解密的过程。
+
+ 
+
+      前两天写了一篇关于游标的介绍文章 ，下边写一个例子，将游标与存储过程一起使用上：
+
+      If Object_ID('dbo.GetMasterGoods') Is Not Null
+            Drop Proc dbo.GetMasterGoods
+      Go
+
+      Create Proc GetMasterGoods
+      @MyCursor Cursor Varying Output
+      With Encryption
+      As 
+             Set @MyCursor = Cursor
+             For
+                    Select GoodsCode,GoodsName From Master_Goods
+      Open @MyCursor
+      Go
+
+      --下边建立另外一个存储过程，用于遍历游标输出结果
+
+      Create Proc GetAllGoodsIDAndName
+      As
+
+      Declare @GoodsCode varchar(18)
+      Declare @GoodsName nvarchar(20)
+      Declare @MasterGoodsCursor Cursor
+      Exec GetMasterGoods @MasterGoodsCursor out
+      Fetch Next From @MasterGoodsCursor
+      InTo @GoodsCode,@GoodsName
+      While(@@Fetch_Status = 0)
+      Begin
+             Begin
+                    Print @GoodsCode + ':' + @GoodsName
+             End
+             Fetch Next From @MasterGoodsCursor
+             InTo @GoodsCode,@GoodsName
+      End
+      Close @MasterGoodsCursor
+      Deallocate @MasterGoodsCursor
+      Go
+
+      最后执行Exec GetAllGoodsIDAndName结果为以下内容
+
+      0003:品0003
+      0004:品0004
+      0005:123123
+      0006:品0006
+      0007:品0007
+      0008:品0008
+      0009:品0009
+      0010:品0010
+      0011:品0011
+      0012:品0012
+      0013:品0013
+      0014:品0014

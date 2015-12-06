@@ -1,0 +1,481 @@
+
+
+ LINQ 项目 .NET 语言集成查询     
+摘要：了解有关添加到 .NET Framework 的常规查询工具的信息，这些工具适用于所有信息源，而不只是关系数据或 XML 数据。该工具名为 .NET 语言集成查询 (LINQ)。
+
+本页内容
+ .NET 语言集成查询 
+ 标准查询操作符简介 
+ 支持 LINQ 项目的语言功能 
+ 更多标准查询操作符 
+ 查询语法 
+ SQL 集成 
+ XML 集成 
+ 小结 
+ 提要栏：标准查询操作符概述 
+
+
+.NET 语言集成查询 
+二十年之后，业界在面向对象 (OO) 编程技术的发展过程中趋于稳定。现在，程序员已经认为诸如类、对象和方法等特性是理所当然的。在探究当前的和下一代技术时，明显可以看出，有关编程技术的下一个难题是降低访问和集成特定信息（这些信息不是使用 OO 技术进行原始定义的）的复杂性。非 OO 信息的两个最常见源是关系数据库和 XML。
+
+对于 LINQ 项目，我们采取了更为普通的方法，并向 .NET Framework 中添加了适用于所有信息源（而不只是关系数据或 XML 数据）的通用查询工具，而不是在编程语言和运行库中添加相关功能或特定于 XML 的功能。该工具名为 .NET 语言集成查询 (LINQ)。
+
+我们使用语言集成查询 这一术语表明，该查询是开发人员主要编程语言（例如，C#、Visual Basic）的集成功能。语言集成查询使得查询表达式 能够得益于丰富的元数据、编译时语法检查、静态输入和智能感知（以前只能用于命令代码）。语言集成查询还允许将单个通用的声明查询工具应用于所有内存中信息，而不只是来自外部源的信息。
+
+.NET 语言集成查询定义了一组通用的标准查询操作符，允许在任何基于 .NET 的编程语言中通过直接的声明方式进行遍历、筛选和投影操作。标准查询操作符允许将查询应用于任何基于 IEnumerable 的信息源。LINQ 允许第三方使用特定于域的新操作符（适用于目标域或技术）来补充标准查询操作符集。更重要的是，第三方还可以使用自己提供附加服务（例如，远程计算、查询转换、优化等）的实现来自由替换标准查询操作符。通过符合 LINQ 样式 的约定，此类实现可以享受与标准查询操作符相同的语言集成和工具支持。
+
+查询体系结构的可扩展性在 LINQ 项目本身中用于提供可同时处理 XML 和 SQL 数据的实现。处理 XML 的查询操作符 (XLinq) 使用一个高效、易于使用的内存中 XML 工具来提供宿主编程语言中的 XPath/XQuery 功能。处理关系数据的查询操作符 (DLinq) 将基于 SQL 的架构定义集成构建到 CLR 类型系统中。该集成通过关系数据提供强类型化，同时直接在底层存储中保留关系模型的表达功能和查询计算的性能。
+
+ 返回页首 
+
+标准查询操作符简介
+为了查看执行中的语言集成查询，我们将从一个简单的 C# 3.0 程序开始，该程序使用标准的查询操作符来处理数组的内容：
+
+using System;
+using System.Query;
+using System.Collections.Generic;
+class app {  
+static void Main() 
+{    string[] names = { "Burke", "Connor", "Frank","Everett", "Albert", "George","Harris", "David" }; 
+    IEnumerable expr = from s in names where s.Length == 5 orderby s select s.ToUpper();
+    foreach (string item in expr)      Console.WriteLine(item);  
+}
+}
+如果您编译并运行该程序，将看到以下输出：
+
+BURKEDAVIDFRANK
+要了解语言集成查询如何工作，我们需要剖析该程序的第一个语句。 
+
+IEnumerable expr = from s in names where s.Length == 5 orderby s select s.ToUpper();
+使用一个查询表达式 初始化局部变量 expr。通过应用一个或多个标准查询操作符或特定于域的操作符，查询表达式可以操作一个或多个信息源。该表达式使用了三个标准查询操作符：Where、OrderBy 和 Select。 
+
+Visual Basic 9.0 也支持 LINQ。以下是以 Visual Basic 9.0 编写的上述语句： 
+
+Dim expr As IEnumerable(Of String) = _                   Select s.ToUpper() _                   From s in names _                   Where s.Length = 5 _                   Order By s
+这里显示的 C# 和 Visual Basic 语句均使用查询语法。与 foreach 语句一样，查询语法是一个方便的声明性代码缩写，您可以手动编写它。上述语句在语义上与以下所示的以 C# 编写的显式语法完全相同：
+
+IEnumerable expr = names                            .Where(s => s.Length == 5)                            .OrderBy(s => s)                           .Select(s => s.ToUpper());
+Where、OrderBy 和 Select 操作符的参数称为 λ 表达式，它们是类似于委托的代码片段。它们允许将标准查询操作符单独定义为方法，并使用点标记串连在一起。这些方法共同构成了可扩展查询语言的基础。
+
+ 返回页首 
+
+支持 LINQ 项目的语言功能
+LINQ 完全构建于通用的语言功能之上，其中某些是在 C# 3.0 和 Visual Basic 9.0 中新增的功能。每个功能都有自己的实用工具，但这些功能共同提供了一种定义查询和可查询 API 的可扩展方法。在本部分中，我们将探究这些语言功能，以及它们如何提供更为直接和声明性的查询模式。
+
+λ 表达式和表达式树 
+
+许多查询操作符都允许用户提供执行筛选、投影或键值提取的函数。基于 λ 表达式的概念而生成的查询工具为开发人员提供了一种编写函数的简便方法，这些函数可以作为后续计算的参数进行传递。λ 表达式类似于 CLR 委托，它必须符合委托类型定义的方法签名。为了进行说明，我们可以使用 Func 委托类型将上述语句扩展为更为显式的等效形式：
+
+Func   filter  = s => s.Length == 5;Func extract = s => s;Func project = s => s.ToUpper();IEnumerable expr = names.Where(filter)                                 .OrderBy(extract)                                .Select(project);
+λ 表达式是 C# 2.0 匿名方法的自然演化结果。例如，我们可以使用匿名方法编写上述示例，如下所示：
+
+Func   filter  = delegate (string s) {                                   return s.Length == 5;                                };Func extract = delegate (string s) {                                    return s;                                };Func project = delegate (string s) {                                   return s.ToUpper();                                };IEnumerable expr = names.Where(filter)                                 .OrderBy(extract)                                .Select(project);
+总之，开发人员可以自由地将命名方法、匿名方法或 λ 表达式与查询操作符一起使用。λ 表达式的优点是，能够提供最直接而简洁的创作语法。更重要的是，λ 表达式可以编译为代码，也可以编译为数据，从而允许优化器、转换器和计算器在运行时处理 λ 表达式。 
+
+LINQ 定义了一个特殊类型 Expression（在 System.Expressions 命名空间中），该类型用于指示给定 λ 表达式需要表达式树，而不是基于 IL 的传统方法体。表达式树是 λ 表达式的有效内存中数据表示形式，它使表达式的结构透明且显式。 
+
+编译器是发出可执行 IL 还是表达式树取决于 λ 表达式的用法。如果将 λ 表达式指定给委托类型的变量、字段或参数，则编译器将发出与匿名方法等效的 IL。如果将 λ 表达式指定给 Expression 类型的变量、字段或参数，则编译器将发出表达式树。 
+
+例如，请考虑以下两个变量声明：
+
+Func             f = n => n < 5;Expression<FUNC> e = n => n < 5;
+变量 f 是对委托的引用，可以直接执行：
+
+bool isSmall = f(2); // isSmall is now true
+变量 e 是对表达式树的引用，不可直接执行：
+
+bool isSmall = e(2); // compile error, expressions == data
+与委托（有效的不透明代码）不同，我们可以像与程序中的任何其他数据结构交互那样与表达式树进行交互。例如，以下程序：
+
+Expression<FUNC> filter = n => n < 5;BinaryExpression    body  = (BinaryExpression)filter.Body;ParameterExpression left  = (ParameterExpression)body.Left;ConstantExpression  right = (ConstantExpression)body.Right;Console.WriteLine("{0} {1} {2}",                   left.Name, body.NodeType, right.Value);
+在运行时分解表达式树，并显示以下字符串：
+
+n LT 5
+对于启用第三方库（利用属于平台一部分的基本查询抽象）的环境，这种在运行时将表达式视为数据的功能很重要。DLinq 数据访问实现利用该功能将表达式树转换为适用于在存储中计算的 T-SQL 语句。
+
+扩展方法 
+
+λ 表达式是查询体系结构的一个重要部分。扩展方法 是另一个重要部分。扩展方法将动态语言中常见的“快速输入”的灵活性与静态输入语言的性能和编译时验证结合在一起。通过扩展方法，第三方可以使用新方法增加一个类型的公共协定，同时仍然允许单个类型创作者为这些方法提供他们自己的特定实现。 
+
+扩展方法在静态类中定义为静态方法，但在 CLR 元数据中以 [System.Runtime.CompilerServices.Extension] 属性标记。我们鼓励语言为扩展方法提供直接语法。在 C# 中，扩展方法由 this 修饰符指示，该修饰符必须应用于扩展方法的第一个参数。我们来看一下最简单的查询操作符 Where 的定义：
+
+namespace System.Query {  using System;  using System.Collections.Generic;  public static class Sequence {    public static IEnumerable Where(             this IEnumerable source,                  Func predicate) {      foreach (T item in source)        if (predicate(item))          yield return item;    }  }}
+扩展方法第一个参数的类型指示该扩展应用于哪种类型。在上述示例中，Where 扩展方法将扩展 IEnumerable 类型。由于 Where 是静态方法，因此我们可以像调用任何其他静态方法那样直接调用它：
+
+IEnumerable expr = Sequence.Where(names,                                           s => s.Length < 6);
+但是，扩展方法的特殊之处在于，它们还可以通过实例语法来调用：
+
+IEnumerable expr = names.Where(s => s.Length < 6);
+扩展方法在编译时根据哪些扩展方法在范围内进行解析。当一个命名空间与 C# 的 using 语句或 VB 的 Import 语句一起导入时，由该命名空间的静态类定义的所有扩展方法将导入范围中。 
+
+标准查询操作符将定义为 System.Query.Sequence 类型的扩展方法。在检查标准查询操作符时，您将注意到，除了一个以外，所有操作符都可以定义为 IEnumerable 接口（这个例外是 OfType，我们将在后文加以说明）。这意味着，每个与 IEnumerable 兼容的信息源都可以通过在 C# 中添加以下 using 语句来轻松地获得标准查询操作符：
+
+using System.Query; // makes query operators visible
+希望将标准查询操作符替换为特定类型的用户可以：(a) 使用兼容的签名在特定类型上定义他们自己的同名方法，或者 (b) 定义可扩展特定类型的新的同名扩展方法。希望完全避免标准查询操作符的用户只能将 System.Query 置于范围以外，并为 IEnumerable 编写他们自己的扩展方法。
+
+对于解析而言，扩展方法具有最低的优先权，并且只有在没有合适的目标类型及其基类型的匹配时才使用。这允许用户定义的类型提供他们自己的、优于标准操作符的查询操作符。例如，请考虑以下自定义集合：
+
+public class MySequence : IEnumerable {  public IEnumerator GetEnumerator() {    for (int i = 1; i <= 10; i++)       yield return i;   }  IEnumerator IEnumerable.GetEnumerator() {    return GetEnumerator();   }  public IEnumerable Where(Func filter) {    for (int i = 1; i <= 10; i++)       if (filter(i))         yield return i;  }}
+假定使用该类定义，以下程序：
+
+MySequence s = new MySequence();foreach (int item in s.Where(n => n > 3))    Console.WriteLine(item);
+将使用 MySequence.Where 实现，而不是扩展方法，因为实例方法优于扩展方法。 
+前面提到的 OfType 操作符是一个无法扩展基于 IEnumerable 的信息源的标准操作符。下面，我们来看一下 OfType 查询操作符：
+
+public static IEnumerable OfType(this IEnumerable source) {  foreach (object item in source)     if (item is T)       yield return (T)item;}
+OfType 不仅接受基于 IEnumerable 的源，还接受针对非参数化 IEnumerable 接口（在 .NET Framework 1.0 版本中提供）编写的源。OfType 操作符允许用户将标准查询操作符应用于以下传统的 .NET 集合：
+
+// "classic" cannot be used directly with query operatorsIEnumerable classic = new OlderCollectionType();// "modern" can be used directly with query operatorsIEnumerablemodern = classic.OfType();
+在本例中，变量 modern 生成了与 classic 相同的值序列，但其类型与现在的 IEnumerable 代码兼容，包括标准查询操作符。 
+
+OfType 操作符对于较新的信息源也很有用，因为它允许根据类型从源筛选值。在生成新序列时，OfType 只省略原始序列中与类型参数不兼容的成员。请考虑下面这个简单的程序，它将从异类数组中提取字符串：
+
+object[] vals = { 1, "Hello", true, "World", 9.1 };IEnumerable justStrings = vals.OfType();
+当我们在 foreach 语句中枚举 justStrings 变量时，将获得一个由两个字符串（“Hello”和“World”）组成的序列。
+
+延迟的查询计算 
+
+观察力敏锐的读者可能会注意到，标准的 Where 操作符是使用 C# 2.0 中引入的 yield 结构实现的。该实现技术常用于返回值序列的所有标准操作符。使用 yield 的一个有趣的优点是，查询实际上是在迭代完毕后计算的（通过使用 foreach 语句，或者手动使用基础的 GetEnumerator 和 MoveNext 方法）。该延迟计算允许将查询保留为基于 IEnumerable 的值，这些值可以计算多次，每次都可能生成不同的值。 
+
+对于许多应用程序而言，这正是所需的行为。对于希望缓存查询计算结果的应用程序而言，提供的两个操作符（ToList 和 ToArray）会强制立即计算查询，并返回包含查询计算结果的 List 或数组。 
+
+要了解延迟查询计算如何工作，请考虑以下程序，该程序对数组运行了一个简单的查询：
+
+// declare a variable containing some stringsstring[] names = { "Allen", "Arthur", "Bennett" };// declare a variable that represents a queryIEnumerable ayes = names.Where(s => s[0] == 'A');// evaluate the queryforeach (string item in ayes)   Console.WriteLine(item);// modify the original information sourcenames[0] = "Bob";// evaluate the query again, this time no "Allen"foreach (string item in ayes)     Console.WriteLine(item);
+每次迭代变量 ayes 时，都会计算查询。要指示所需结果的缓存副本，我们只需在查询中追加一个 ToList 或 ToArray 操作符，如下所示：
+
+// declare a variable containing some stringsstring[] names = { "Allen", "Arthur", "Bennett" };// declare a variable that represents the result// of an immediate query evaluationstring[] ayes = names.Where(s => s[0] == 'A').ToArray();// iterate over the cached query resultsforeach (string item in ayes)     Console.WriteLine(item);// modifying the original source has no effect on ayesnames[0] = "Bob";// iterate over result again, which still contains "Allen"foreach (string item in ayes)    Console.WriteLine(item);
+ToArray 和 ToList 都可以强制立即执行查询计算，这与返回单个值的标准查询操作符（例如，First、ElementAt、Sum、Average、All 和 Any）一样。
+
+初始化复合值 
+
+λ 表达式和扩展方法为我们提供了只从值序列筛选成员的查询所需的全部内容。大多数查询表达式还针对这些成员执行投影，将原始序列的成员有效地转换为值和类型可能不同于原先的成员。要支持编写这些转换，LINQ 依赖一个名为对象初始化表达式 的新结构，以创建结构化类型的新实例。在本文其余部分中，我们将假设定义了以下类型：
+
+public class Person {  string name;  int age;  bool canCode;  public string Name {    get { return name; } set { name = value; }  }  public int Age {    get { return age; } set { age = value; }  }  public bool CanCode {    get { return canCode; } set { canCode = value; }  }}
+对象初始化表达式使我们能够根据类型的公共字段和属性轻松地生成值。例如，要创建 Person 类型的新值，我们可以编写以下语句：
+
+Person value = new Person {    Name = "Chris Smith", Age = 31, CanCode = false};
+从语义上说，该语句等效于以下语句序列：
+
+Person value = new Person();value.Name = "Chris Smith";value.Age = 31;value.CanCode = false;
+对象初始化表达式是语言集成查询的一个重要功能，因为它们允许在仅允许表达式的上下文（如 λ 表达式和表达式树）中生成新的结构化值。例如，请考虑以下查询表达式，它为输入序列中的每个值创建了新的 Person 值：
+
+IEnumerable expr = names.Select(s => new Person {    Name = s, Age = 21, CanCode = s.Length == 5});
+对象初始化语法也可以方便地用于初始化结构化值的数组。例如，请考虑以下数组变量，该变量是使用单个的对象初始值设定项来初始化的：
+
+static Person[] people = {  new Person { Name="Allen Frances", Age=11, CanCode=false },  new Person { Name="Burke Madison", Age=50, CanCode=true },  new Person { Name="Connor Morgan", Age=59, CanCode=false },  new Person { Name="David Charles", Age=33, CanCode=true },  new Person { Name="Everett Frank", Age=16, CanCode=true },};
+结构化值和类型 
+
+LINQ 项目支持以数据为中心的编程样式，其中，某些类型的存在主要是为了通过结构化值提供静态“形式”，而不是提供同时具有状态和行为的完整对象。根据它的逻辑结论推测，通常，开发人员所关心的只是值的结构，以及对命名类型的需要，因为该形式很少使用。这就引出了对匿名类型 的介绍，匿名类型允许将新的结构定义为与它们的初始化进行“内联”。 
+
+在 C# 中，匿名类型的语法与对象初始化语法完全相同（除了省略了类型的名称）。例如，请考虑以下两个语句：
+
+object v1 = new Person {    Name = "Chris Smith", Age = 31, CanCode = false};object v2 = new { // note the omission of type name    Name = "Chris Smith", Age = 31, CanCode = false};
+变量 v1 和 v2 都指向一个内存中对象，该对象的 CLR 类型有三个公共属性 — Name、Age 和 CanCode。变量的不同之处在于，v2 引用了匿名类型 的实例。在 CLR 术语中，匿名类型与任何其他类型没有区别。匿名类型的特殊之处在于，它们在编程语言中没有有意义的名称 — 创建匿名类型实例的唯一方法就是使用上述语法。 
+
+要使变量能够引用匿名类型的实例，同时仍然从静态类型获益，C# 引入了 var 关键字，以便用于替换局部变量声明的类型名称。例如，请考虑以下合法的 C# 3.0 程序：
+
+var s = "Bob";var n = 32;var b = true;
+var 关键字会告诉编译器，从用于初始化变量的表达式的静态类型推断出变量的类型。在本例中，s、n 和 b 的类型分别是 string、int 和 bool。该程序与以下程序完全相同：
+
+string s = "Bob";int    n = 32;bool   b = true;
+var 关键字方便用于其类型名称有意义的变量，但对于引用匿名类型实例的变量而言是必需的。
+
+var value = new {   Name = "Chris Smith", Age = 31, CanCode = false};
+在上述示例中，变量 value 是匿名类型，其定义与以下伪 C# 等效：
+
+internal class ??? {  string _Name;  int    _Age;  bool   _CanCode;  public string Name {     get { return _Name; } set { _Name = value; }  }  public int Age{     get { return _Age; } set { _Age = value; }  }  public bool CanCode {     get { return _CanCode; } set { _CanCode = value; }  }}
+匿名类型不能跨程序集边界共享；但是，编译器可确保在每个程序集中，属性名/类型对的给定序列最多有一个匿名类型。
+
+由于匿名类型通常用于投影，以选择现有结构化值的一个或多个成员，因此我们只需从匿名类型初始化的另一个值中引用字段或属性。这将导致一个新的匿名类型，其属性的名称、类型和值均从所引用的属性或字段复制而来。
+
+例如，请考虑以下示例，该示例通过组合其他值的属性创建了一个新的结构化值：
+
+var bob = new Person { Name = "Bob", Age = 51, CanCode = true };var jane = new { Age = 29, FirstName = "Jane" };var couple = new {    Husband = new { bob.Name, bob.Age },    Wife = new { Name = jane.FirstName, jane.Age }};int    ha = couple.Husband.Age; // ha == 51string wn = couple.Wife.Name;   // wn == "Jane"
+对上述字段或属性的引用只是一种方便的语法，可用于编写以下更显式的窗体：
+
+var couple = new {    Husband = new { Name = bob.Name, Age = bob.Age },    Wife = new { Name = jane.FirstName, Age = jane.Age }};
+在这两个示例中，couple 变量从 bob 和 jane 获得了自己的 Name 和 Age 属性副本。
+
+匿名类型通常用于查询的 select 子句。例如，请考虑以下查询：
+
+var expr = people.Select(p => new {                p.Name, BadCoder = p.Age == 11           });foreach (var item in expr)   Console.WriteLine("{0} is a {1} coder",                      item.Name,                     item.BadCoder ? "bad" : "good");
+在本例中，我们能够通过 Person 类型创建新投影，以完全匹配处理代码所需的形式，同时仍然提供静态类型的优势。 
+
+ 返回页首 
+
+更多标准查询操作符
+除了上述基本查询工具之外，许多操作符也提供了操作序列和编写查询的有用方法，从而在标准查询操作符的方便架构中为用户提供对结果的高级控制。
+
+排序和分组 
+
+一般而言，对查询表达式的计算会导致以某种顺序生成一系列值，该顺序是底层信息源的固有顺序。要使开发人员能够显式控制这些值的生成顺序，应定义标准查询操作符来控制该顺序。这些操作符中最基本的就是 OrderBy 操作符。
+
+OrderBy 和 OrderByDescending 操作符可应用于任何信息源，并允许用户提供可生成用于排序结果的值的键值提取函数。OrderBy 和 OrderByDescending 还接受可用于对键施加部分顺序的可选比较函数。下面我们来看一个基本示例：
+
+string[] names = { "Burke", "Connor", "Frank", "Everett",                    "Albert", "George", "Harris", "David" };// unity sortvar s1 = names.OrderBy(s => s); var s2 = names.OrderByDescending(s => s);// sort by lengthvar s3 = names.OrderBy(s => s.Length); var s4 = names.OrderByDescending(s => s.Length);
+前两个查询表达式会生成根据字符串比较排序源成员的新序列。后两个查询会生成根据每个字符串的长度排序源成员的新序列。
+
+要允许多个排序准则，OrderBy 和 OrderByDescending 都应该返回 SortedSequence，而不是通用的 IEnumerable。两个操作符仅在 SortedSequence 上定义，分别名为 ThenBy 和 ThenByDescending，它们将应用附加（从属）的排序准则。ThenBy/ThenByDescending 自身会返回 SortedSequence，以允许应用任何数量的 ThenBy/ThenByDescending 操作符：
+
+string[] names = { "Burke", "Connor", "Frank", "Everett",                    "Albert", "George", "Harris", "David" };var s1 = names.OrderBy(s => s.Length).ThenBy(s => s);
+在本例中，计算由 s1 引用的查询将生成以下值序列：
+
+"Burke", "David", "Frank", "Albert", "Connor", "George", "Harris", "Everett"
+除了 OrderBy 系列的操作符，标准查询操作符还包括 Reverse 操作符。Reverse 只枚举序列并以相反的顺序生成相同的值。与 OrderBy 不同，Reverse 在决定顺序时不考虑实际值本身，而仅仅依赖于底层源生成的值的顺序。
+
+OrderBy 操作符可对值序列施加排序顺序。标准查询操作符还包括 GroupBy 操作符，该操作符可根据键值提取函数对值序列进行分区。GroupBy 操作符会返回一列 Grouping 值，其中每一个对应于所遇到的不同的键值。每个 Grouping 都包含键，以及映射到该键的值集合。Grouping 的公共协定如下所示：
+
+public sealed class Grouping {  public Grouping(K key, IEnumerable group);  public Grouping();  public K Key { get; set; }  public IEnumerable Group { set; get; }}
+最简单的 GroupBy 应用程序如下所示：
+
+string[] names = { "Albert", "Burke", "Connor", "David",                   "Everett", "Frank", "George", "Harris"};// group by lengthvar grouping = names.GroupBy(s => s.Length);foreach (Grouping group in grouping) {    Console.WriteLine("Strings of length {0}", group.Key);    foreach (string value in group.Group)        Console.WriteLine("  {0}", value);}    
+运行后，该程序会显示出以下结果：
+
+Strings of length 6  Albert  Connor  George  HarrisStrings of length 5  Burke  David  FrankStrings of length 7  Everett
+Select 和 GroupBy 允许您提供用于填充组成员的投影函数。
+
+string[] names = { "Albert", "Burke", "Connor", "David",                   "Everett", "Frank", "George", "Harris"};// group by lengthvar grouping = names.GroupBy(s => s.Length,                              s => s[0]);foreach (Grouping group in grouping) {    Console.WriteLine("Strings of length {0}", group.Key);    foreach (char value in group.Group)        Console.WriteLine("  {0}", value);}  
+该变体会显示以下结果：
+
+Strings of length 6  A  C  G  HStrings of length 5  B  D  FStrings of length 7  E
+从该示例中可以注意到，投影类型不需要与源相同。在本例中，我们从字符串序列创建了整数-字符的分组。
+
+聚合操作符 
+
+定义几个标准查询操作符，以便将一列值聚合到单个值中。最常见的聚合操作符是 Fold，它定义如下：
+
+public static U Fold(this IEnumerable source,                            U seed, Func func) {  U result = seed;  foreach (T element in source)       result = func(result, element);  return result;}
+Fold 操作符使得针对值序列进行计算很简单。Fold 的工作方法是，为底层序列的每个成员调用一次 λ 表达式。每次 Fold 调用 λ 表达式时，都会传递序列的成员和一个聚合值（初始值基于 Fold 的种子参数）。λ 表达式的结果会替换先前的聚合值，Fold 将返回 λ 表达式的最终结果。
+
+例如，以下程序使用 Fold 针对一个字符串数组计算总字符数：
+
+string[] names = { "Albert", "Burke", "Connor", "David",                   "Everett", "Frank", "George", "Harris"};int count = names.Fold(0, (c, s) => c + s.Length);// count == 46
+除了通用的 Fold 操作符，标准查询操作符还包含一个通用的 Count 操作符和四个数值聚合操作符（Min、Max、Sum 和 Average），以便简化这些常见的聚合操作。只要提供将序列成员投影到数值类型的函数，数值聚合函数就可以处理数值类型的序列（例如，int、double、decimal）或任意值序列。 
+
+以下程序演示 Sum 操作符的上述两种形式：
+
+int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };string[] names = { "Albert", "Burke", "Connor", "David",                   "Everett", "Frank", "George", "Harris"};int total1 = numbers.Sum();            // total1 == 55int total2 = names.Sum(s => s.Length); // total2 == 46
+请注意，第二个 Sum 语句等效于前面使用 Fold 的示例。 
+
+Select 与 SelectMany 
+
+Select 操作符要求转换函数为源序列中的每个值生成一个值。如果转换函数返回的值本身就是一个序列，则应该由使用者手动遍历子序列。例如，请考虑以下程序，该程序使用现有的 String.Split 方法将字符串拆分为标记：
+
+string[] text = { "Albert was here",                   "Burke slept late",                   "Connor is happy" };var tokens = text.Select(s => s.Split(' '));foreach (string[] line in tokens)    foreach (string token in line)        Console.Write("{0}.", token);
+运行后，该程序会显示以下文本：
+
+Albert.was.here.Burke.slept.late.Connor.is.happy.
+理想情况下，我们应该让查询返回标记的合并序列，并且不对使用者公开中间 string[]。为此，我们将使用 SelectMany 操作符，而不是 Select 操作符。SelectMany 操作符的工作方式类似于 Select 操作符。但不同之处在于，转换函数返回的序列随后由 SelectMany 操作符扩展。下面是使用 SelectMany 重新编写的程序：
+
+string[] text = { "Albert was here",                   "Burke slept late",                   "Connor is happy" };var tokens = text.SelectMany(s => s.Split(' '));foreach (string token in tokens)    Console.Write("{0}.", token);
+使用 SelectMany 会导致每个中间序列扩展为正常计算的一部分。
+
+ 返回页首 
+
+查询语法
+C# 的现有 foreach 语句通过 .NET Framework 的 IEnumerable/IEnumerator 方法为迭代提供声明性语法。foreach 语句完全是可选的，但经过证实，它是一个非常方便和常用的语言机制。
+
+以此为先例，查询语法 通过声明性语法为以下最常用的查询操作符简化了查询表达式：Where、Select、SelectMany、GroupBy、OrderBy、ThenBy、OrderByDescending 和 ThenByDescending。 
+
+下面我们首先看一下本文开头的简单查询：
+
+IEnumerable expr = names                            .Where(s => s.Length == 5)                            .OrderBy(s => s)                           .Select(s => s.ToUpper());
+使用查询语法，我们可以按如下方式重新编写这个语句：
+
+IEnumerable expr = from s in names                            where s.Length == 5                           orderby s                           select s.ToUpper();
+与 C# 的 foreach 语句一样，查询语法表达式更加简洁、易读，但完全是可选的。每个可以用查询语法编写的表达式都有一个相应的使用点标记的语法（虽然较为冗长）。 
+
+下面，我们首先看一下查询表达式的基本结构。C# 中的每个语法查询表达式都以 from 子句开始，以 select 或 group 子句结束。最初的 from 子句后可以跟随零个或多个 from 或 where 子句。每个 from 子句都是一个在序列中引入迭代变量的生成器，每个 where 子句都是一个从结果中排除项目的筛选器。最终的 select 或 group 子句之前可能会添加指定结果顺序的 orderby 子句。单个查询表达式的简化语法如下所示：
+
+from itemName in srcExpr((from itemName in srcExpr) | (where predExpr))*(orderby (keyExpr (ascending|descending)?)+)?((select selExpr) | (group selExpr by keyExpr))
+例如，请考虑以下两个查询表达式：
+
+var query1 = from p in people             where p.Age > 20             orderby p.Age descending, p.Name             select new {                  p.Name, Senior = p.Age > 30, p.CanCode             };var query2 = from p in people             where p.Age > 20             orderby p.Age descending, p.Name             group new {                 p.Name, Senior = p.Age > 30, p.CanCode             } by p.CanCode;
+编译器处理这些查询表达式的方式，就好像它们是使用以下显式点标记编写的：
+
+var query1 = people.Where(p => p.Age > 20)                   .OrderByDescending(p => p.Age)                   .ThenBy(p => p.Name)                   .Select(p => new {                        p.Name,                        Senior = p.Age > 30,                        p.CanCode                   });var query2 = people.Where(p => p.Age > 20)                   .OrderByDescending(p => p.Age)                   .ThenBy(p => p.Name)                   .GroupBy(p => p.CanCode,                             p => new {                                   p.Name,                                    Senior = p.Age > 30,                                    p.CanCode                   });
+查询表达式基于方法名称执行机械转换。所选择的查询操作符实现取决于所查询的变量类型以及范围内的扩展方法。 
+
+到目前为止，所展示的查询表达式只使用了一个生成器。如果使用多个生成器，则每个后续的生成器将在其前一个生成器的上下文中进行计算。例如，请考虑以下对查询的小修改： 
+
+var query = from s1 in names where s1.Length == 5            from s2 in names where s1 == s2            select s1 + " " + s2;
+如果运行以下输入数组：
+
+string[] names = { "Burke", "Connor", "Frank", "Everett",                    "Albert", "George", "Harris", "David" };
+我们将得到以下结果：
+
+Burke BurkeFrank FrankDavid David
+上述查询表达式扩展为以下点标记表达式：
+
+var query = names.Where(s1 => s1.Length == 5)                 .SelectMany(s1 =>                      names.Where(s2 => s1 == s2)                           .Select(s2 => s1 + " " + s2)                 );
+请注意，使用 SelectMany 会导致内部查询表达式对外部结果失效。
+
+本部分前面所述的查询表达式的简化语法忽略了一个非常有用的功能。将一个查询的结果视为后续查询的生成器通常很有用。为此，查询表达式将使用 into 关键字在 select 或 group 子句后拼接一个新的查询表达式。下面是简化的语法，它展示 into 关键字如何适应其余的语法：
+
+from itemName in srcExpr((from itemName in srcExpr) | (where predExpr))*(orderby (keyExpr (ascending|descending)?)+)?((select selExpr) | (group selExpr by keyExpr))(  into itemName    ((from itemName in srcExpr) | (where predExpr))*    (orderby (keyExpr (ascending|descending)?)+)?    ((select selExpr) | (group selExpr by keyExpr)))*
+对于后续处理 group by 子句的结果，into 关键字特别有用。例如，请考虑以下程序：
+
+var query = from item in names            orderby item            group item by item.Length into lengthGroups            orderby lengthGroups.Key descending            select lengthGroups;foreach (var group in query) {     Console.WriteLine("Strings of length {0}", group.Key);    foreach (var val in group.Group)        Console.WriteLine("  {0}", val);}
+该程序将输出以下内容：
+
+Strings of length 7  EverettStrings of length 6  Albert  Connor  George  HarrisStrings of length 5  Burke  David  Frank
+本部分描述 C# 如何实现查询表达式。其他语言可能选择通过显式语法支持其他查询操作符。
+
+需要注意的是，查询语法绝对不是硬连接到标准查询操作符的。它是纯粹的语法功能，通过以适当的名称和签名实现基础方法，来应用于任何符合 LINQ 样式 的类型。上述标准查询操作符是使用扩展方法增加 IEnumerable 接口来实现这一点的。开发人员可以对任何所需的类型使用查询语法，只要确保它符合 LINQ 样式（通过直接实现必需的方法，或者将它们添加为扩展方法）即可。
+
+这种可扩展性在 LINQ 项目本身中采用，方法是：提供两个支持 LINQ 的 API，分别名为 DLinq（为基于 SQL 的数据访问实现 LINQ 样式）和 Xlinq（允许 LINQ 通过 XML 数据查询）。这两者将在以下部分中描述。
+
+ 返回页首 
+
+SQL 集成
+.NET 语言集成查询可用于查询关系数据存储，而不必离开本地编程语言的语法或编译时环境。该工具（代号为 DLinq）利用 SQL 架构信息到 CLR 元数据的集成。该集成将 SQL 表和视图定义编译为可以从任何语言访问的 CLR 类型。 
+
+DLinq 定义了两个核心属性（[Table] 和 [Column]），它们指示哪些 CLR 类型和属性对应于外部 SQL 数据。[Table] 属性可以应用于类，并将 CLR 类型与命名的 SQL 表或视图相关联。[Column] 属性可以应用于任何字段或属性，并将成员与命名的 SQL 列相关联。这两个属性均被参数化，以允许保留特定于 SQL 的元数据。例如，请考虑以下这个简单的 SQL 架构定义：
+
+create table People (    Name nvarchar(32) primary key not null,     Age int not null,     CanCode bit not null)create table Orders (    OrderID nvarchar(32) primary key not null,     Customer nvarchar(32) not null,     Amount int)
+CLR 等效形式如下所示：
+
+[Table(Name="People")]public class Person {  [Column(DbType="nvarchar(32) not null", Id=true)]  public string Name;   [Column]  public int Age;  [Column]  public bool CanCode;}[Table(Name="Orders")]public class Order {  [Column(DbType="nvarchar(32) not null", Id=true)]  public string OrderID;   [Column(DbType="nvarchar(32) not null")]          public string Customer;   [Column]  public int? Amount; }
+在该示例中，请注意，可以为空的列映射到 CLR 中可以为空的类型（可以为空的类型首次出现在 .NET Framework 版本 2 中），并且对于无法 1:1 对应于 CLR 类型的 SQL 类型（例如，nvarchar、char、text），原始 SQL 类型会保留在 CLR 元数据中。
+
+要针对关系存储发出查询，LINQ 样式的 DLinq 实现会将查询从表达式树形式转换为 SQL 表达式以及适用于远程计算的 ADO.NET DbCommand 对象。例如，请考虑以下这个简单的查询：
+
+// establish a query context over ADO.NET sql connectionDataContext context = new DataContext(     "Initial Catalog=petdb;Integrated Security=sspi");// grab variables that represent the remote tables that // correspond to the Person and Order CLR typesTable custs = context.GetTable();Table orders   = context.GetTable();// build the queryvar query = from c in custs, o in orders            where o.Customer == c.Name            select new {                        c.Name,                        o.OrderID,                       o.Amount,                       c.Age            }; // execute the queryforeach (var item in query)     Console.WriteLine("{0} {1} {2} {3}",                       item.Name, item.OrderID,                       item.Amount, item.Age);
+DataContext 类型提供一个轻量转换器，它的工作是将标准查询操作符转换为 SQL。DataContext 使用现有的 ADO.NET IDbConnection 来访问存储，并且可以使用已建立的 ADO.NET 连接对象或者可用于创建连接对象的连接字符串来进行初始化。 
+
+GetTable 方法提供与 IEnumerable 兼容的变量，这些变量可用于查询表达式，以表示远程表或视图。调用 GetTable 不会导致与数据库进行交互 – 虽然它们表示使用查询表达式与远程表或视图进行交互的潜在可能。在上述示例中，直到程序迭代完查询表达式，才会将查询传送到存储，在这种情况下，使用的是 C# 中的 foreach 语句。当程序首次迭代完查询后，DataContext 机制会将表达式树转换为以下将发送给存储的 SQL 语句：
+
+SELECT [t0].[Age], [t1].[Amount],        [t0].[Name], [t1].[OrderID]FROM [Customers] AS [t0], [Orders] AS [t1]WHERE [t1].[Customer] = [t0].[Name]
+需要注意的是，通过将查询功能直接构建到本地编程语言中，开发人员可以完全控制关系模型，而不必将关系静态转换为 CLR 类型。完整的对象/关系映射还可以利用这个核心查询功能，以方便需要该功能的用户。
+
+ 返回页首 
+
+XML 集成
+用于 XML 的 .NET 语言集成查询 (XLinq) 允许使用标准查询操作符以及特定于树的操作符（提供类似于 XPath 的子代、父代和同辈导航）来查询 XML 数据。它提供了有效的 XML 内存中表示形式，该表示形式与现有的 System.Xml 读取器/写入器基础结构集成在一起，比 W3C 文档更易于使用。将 XML 与查询相集成的大部分工作由以下三个类型执行：XName、XElement 和 XAttribute。 
+
+XName 提供一种易于使用的方法来处理命名空间限定的标识符 (QName)（既用作元素又用作属性名）。XName 可以透明地处理高效的标识符原子化，并在需要 QName 时允许使用符号或纯字符串。
+
+XML 元素和属性分别通过 XElement 和 XAttribute 表示。XElement 和 XAttribute 支持普通的结构语法，以允许开发人员使用自然语法编写 XML 表达式：
+
+var e = new XElement("Person",                      new XAttribute("CanCode", true),                     new XElement("Name", "Loren David"),                     new XElement("Age", 31));var s = e.ToString();
+这对应于以下 XML：
+
+<Person CanCode="true"> ?  <Name>Loren David</Name> ?  <Age>31</Age> </Person>
+请注意，创建 XML 表达式不需要基于 DOM 的工厂模式，并且 ToString 实现会生成 XML 文本。XML 元素还可以从现有的 XmlReader 或字符串文字生成：
+
+var e2 = XElement.Load(xmlReader);       var e1 = XElement.Parse(       @"<Person CanCode='true'>        <Name>Loren David</Name>        <Age>31</Age>       </Person>");
+XElement 还支持使用现有的 XmlWriter 类型发出 XML。
+
+XElement 与查询操作符吻合，从而允许开发人员针对非 XML 信息编写查询，以及通过将 XElements 构建到 select 子句的正文中来生成 XML 结果：
+
+var query = from p in people             where p.CanCode            select new XElement("Person",                                   new XAttribute("Age", p.Age),                                  p.Name);
+该查询将返回一个 XElement 序列。要允许 XElement 的生成超出这种类型的查询结果，XElement 构造函数应允许将元素序列直接作为参数进行传递：
+
+var x = new XElement("People",                  from p in people                   where p.CanCode                  select                     new XElement("Person",                                    new XAttribute("Age", p.Age),                                   p.Name));
+该 XML 表达式将生成以下 XML：
+
+  <People>        <Person Age="11">Allen Frances</Person>         <Person Age="59">Connor Morgan</Person>   </People>
+上述语句可以直接转换为 Visual Basic。但是，Visual Basic 9.0 还支持使用 XML 文字，这允许直接从 Visual Basic 使用声明性 XML 语法来表达查询表达式。上面的示例可以通过以下 Visual Basic 语句生成：
+
+Dim x = _       <People>       Select <Person Age=(p.Age) >p.Name</Person> _       From p In people _       Where p.CanCode       </People>
+到目前为止，这些示例已经展示了如何使用语言集成的查询生成 新的 XML 值。XElement 和 XAttribute 类型还简化了从 XML 结构提取 信息的过程。XElement 还提供了访问器方法，以便允许将查询表达式应用于传统的 XPath 轴。例如，以下查询仅从上述 XElement 中提取名称：
+
+IEnumerable justNames =    from e in x.Descendants("Person")    select e.Value;//justNames = ["Allen Frances", "Connor Morgan"]
+要从 XML 中提取结构化值，我们只需在 select 子句中使用对象初始值设定项表达式：
+
+IEnumerable persons =    from e in x.Descendants("Person")    select new Person {         Name = e.Value,        Age = (int)e.Attribute("Age")     };
+请注意，XAttribute 和 XElement 都支持显式转换操作符将文本值作为基元类型来提取。要处理缺失数据，我们只需强制转换为可以为空的类型：
+
+IEnumerable persons = from e in x.Descendants("Person") select new Person { Name = e.Value, Age = (int?)e.Attribute("Age") ?? 21 };
+
+在本例中，当 Age 属性缺失时，我们使用默认值 21。
+
+Visual Basic 9.0 为 XElement 的 Elements、Attribute 和 Descendants 等访问器方法提供了直接的语言支持，以允许使用更为简洁、直接的语法来访问基于 XML 的数据。我们可以使用此功能来编写前面的 C# 语句，如下所示：
+
+Dim persons = _    Select new Person {      .Name = e.Name      .Age = e.@Age ?? 21      }     From e In x...Person
+在 Visual Basic 中，表达式 e.Name 通过名称 Name 查找所有的 XElement，表达式 e.@Age 通过名称 Age 查找 XAttribute，而表达式 x...Person 则通过名称 Person 获得 x 的 Descendants 集合中的所有项。 
+
+ 返回页首 
+
+小结
+.NET 语言集成查询为 CLR 以及针对 CLR 的语言添加了查询功能。该查询工具在 λ 表达式和表达式树的基础上生成，以允许将谓词、投影和键值提取表达式用作不透明的可执行代码，或者用作适于下游处理或转换的透明内存中数据。LINQ 项目定义的标准查询操作符可在任何基于 IEnumerable 的信息源上工作，并且与 ADO.NET (DLinq) 和 System.Xml (XLinq) 集成在一起，以允许关系数据和 XML 数据获得语言集成查询的优点。
+
+ 返回页首 
+
+提要栏：标准查询操作符概述
+    
+OfType
+ 基于类型从属关系进行筛选
+ 
+Select/SelectMany
+ 基于转换函数进行投影
+ 
+Where
+ 基于谓词函数进行筛选
+ 
+Count
+ 基于可选谓词函数进行计数
+ 
+All/Any
+ 基于谓词函数的通用/存在量
+ 
+First/FirstOrDefault
+ 基于可选的谓词函数访问初始成员
+ 
+ElementAt
+ 访问指定位置上的成员
+ 
+Take/Skip
+ 访问指定位置之前/之后的成员
+ 
+TakeWhile/SkipUntil
+ 在满足谓词函数之前/之后访问成员
+ 
+GroupBy
+ 基于键值提取函数进行分区
+ 
+ToDictionary
+ 基于键值提取函数创建键/值字典
+ 
+OrderBy/ThenBy
+ 基于键值提取函数和可选的比较函数以升序排列
+ 
+OrderByDescending/
+
+ThenByDescending
+ 基于键值提取函数和可选的比较函数以降序排列
+ 
+Reverse
+ 反转序列的顺序
+ 
+Fold
+ 基于聚合函数对多个值进行聚合
+ 
+Min/Max/Sum/Average
+ 数值聚合函数
+ 
+Distinct
+ 筛选重复成员
+ 
+Except
+ 对作为指定集合成员的元素进行筛选
+ 
+Intersect
+ 筛选不是非指定集合成员的元素
+ 
+Union
+ 组合两个集合中的不同成员
+ 
+Concat
+ 串联两个序列的值
+ 
+ToArray/ToList
+ 在数组或 List 中缓存查询结果
+ 
+Range
+ 创建某个范围内的数字序列
+ 
+Repeat
+ 创建给定值的多个副本序列
+ 

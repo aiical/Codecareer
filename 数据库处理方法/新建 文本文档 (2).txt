@@ -1,0 +1,227 @@
+private void btnDelete_Click(object sender, EventArgs e) 
+        { 
+            //判断用户是否选择一行数据，true为没选择，false为选择 
+            if (this.dgv.Rows[this.dgv.CurrentRow.Index].Cells[0].Value.ToString()=="") 
+            { 
+                MessageBox.Show("请选择一项进行删除"); 
+            } 
+            else 
+            { 
+                //判断用户是否点击确定按钮，true为点击，false为没有点击 
+                if (MessageBox.Show("确认删除？","提示", MessageBoxButtons.YesNo)==DialogResult.Yes) 
+                { 
+                    //定义数组，用循环赋值 
+
+                    String[] array = new String[]; 
+                    for (int i = 0; i < this.dgv.SelectedRows.Count; i++) 
+                    { 
+                        String str = this.dgv.Rows[this.dgv.SelectedRows[i].Index].Cells[0].Value.ToString(); 
+                        String strDelete = "Delete from students where StudentNumber='" + str + "'"; 
+                        array[i] = strDelete; 
+                    } 
+                    //遍历数组 
+                    foreach (String str in array) 
+                    { 
+                        this.Update(str); 
+                    } 
+                        //这里写刷新的方法 
+                } 
+            } 
+        } 
+ 
+ 
+ 
+对我有用[0] 丢个板砖[0] 引用 举报 管理 TOP  
+ 
+kingboy2008
+ 
+(灵雨飘零) 
+
+等　级： 
+ #10楼 得分：0回复于：2008-10-31 16:09:25datagridview多行删除 
+
+在sql2000里。可以选择多行进行删除，并且可以从底部向上选择。用vs做winForm用到datagridview也可达到同样的效果。下面是代 
+
+码 
+        private void button1_Click(object sender, EventArgs e) 
+        { 
+            int j = dataGridView1.SelectedRows.Count; 
+            if (MessageBox.Show("您确认要删除这" + Convert.ToString(j) + "项吗？", "系统提示", 
+
+MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)//给出提示 
+            { 
+
+            } 
+            else 
+            { 
+                for (int i = 0; dataGridView1.SelectedRows.Count > i; ) 
+                { 
+                    dataGridView1.Rows.Remove(dataGridView1.SelectedRows[0]); 
+
+                } 
+                wy_qqxsTableAdapter.Update(dataSet1.wy_qqxs); 
+            } 
+
+
+        } 
+
+
+DataGridView删除行，和删除表 
+int x = dataGridView1.SelectedRows.Count;//获得选中的行 
+while (x > 0)//可一次删除多行 
+{ 
+dataGridView1.Rows.RemoveAt(dataGridView1.SelectedRows[x-1].Index); 
+x--; 
+} 
+如果想删除对应数据库内的行 数据库的表 必须要有主键 
+
+
+=========================================================================================== 
+
+对选中的datagridview中的多行删除 
+datagridview绑定通过bindingsource, 代码如下: 
+
+//绑定 
+this.bindingsource1.DataSource = ds.Tables[0]; 
+this.dgv.DataSource = bindingsource1; 
+
+//删除 
+private void bindingNavigatorDeleteItem_Click(object sender, EventArgs e) 
+{ 
+for (int i = dgv.SelectedRows.Count - 1; i >= 0; i--) 
+{ 
+    dgv.Rows.Remove(dgv.SelectedRows[i]); 
+}
+} 
+
+
+=========================================================================================== 
+
+
+private void btnDelete_Click(object sender, EventArgs e) 
+        { 
+            //判断用户是否选择一行数据，true为没选择，false为选择 
+            if (this.dgv.Rows[this.dgv.CurrentRow.Index].Cells[0].Value.ToString()=="") 
+            { 
+                MessageBox.Show("请选择一项进行删除"); 
+            } 
+            else 
+            { 
+                //判断用户是否点击确定按钮，true为点击，false为没有点击 
+                if (MessageBox.Show("确认删除？","提示", MessageBoxButtons.YesNo)==DialogResult.Yes) 
+                { 
+                    //定义数组，用循环赋值 
+
+                    String[] array = new String[]; 
+                    for (int i = 0; i < this.dgv.SelectedRows.Count; i++) 
+                    { 
+                        String str = this.dgv.Rows[this.dgv.SelectedRows[i].Index].Cells[0].Value.ToString(); 
+                        String strDelete = "Delete from students where StudentNumber='" + str + "'"; 
+                        array[i] = strDelete; 
+                    } 
+                    //遍历数组 
+                    foreach (String str in array) 
+                    { 
+                        this.Update(str); 
+                    } 
+                        //这里写刷新的方法 
+                } 
+            } 
+        } 
+
+
+=========================================================================================== 
+
+最近用到数据库，发现C#2005默认没有DataGrid，如果需要可以自己添加。并且提供了一个更新的DataGridView。但两者操作上还是 
+
+有一些区别的。找了半天才找到一些处理数据的方法。具体做法就不说了，仅列出WinForm下DataGridView填充、更新、删除（多行 
+
+）Sql Express 2005数据库代码。 
+        private void button1_Click(object sender, EventArgs e) 
+        { 
+            this.hostTableAdapter.Fill(this.hostScanDataSet.host); 
+        } 
+        private void button2_Click(object sender, EventArgs e) 
+        { 
+            this.hostTableAdapter.Update(this.hostScanDataSet.host); 
+            MessageBox.Show("记录已保存!"); 
+        } 
+
+        private void button3_Click(object sender, EventArgs e) 
+        { 
+            DialogResult dlResult = MessageBox.Show(this, "要删除这些记录吗？", "请确认", 
+                MessageBoxButtons.YesNo, 
+                MessageBoxIcon.Question, 
+                MessageBoxDefaultButton.Button1, 
+                MessageBoxOptions.RightAlign); 
+            if (dlResult == DialogResult.Yes) 
+            { 
+                int j = dataGridView1.SelectedRows.Count; 
+                int[] l = new int[j]; 
+
+                int i; 
+                for (i = 0; i < j; i++) 
+                { 
+                    l[i] = dataGridView1.SelectedRows[i].Index; 
+                } 
+
+                int k = 0; 
+                while (k < j) 
+                { 
+                    this.hostScanDataSet.host.Rows[l[k]].Delete(); 
+                    k++; 
+                } 
+                this.hostTableAdapter.Update(this.hostScanDataSet.host); 
+            } 
+        } 
+
+=========================================================================================== 
+
+
+  protected void Button1_Click(object sender, EventArgs e) 
+    { 
+        string id = ""; 
+        foreach (GridViewRow gvr in GridView1.Rows) 
+        { 
+            CheckBox ch = (CheckBox)gvr.FindControl("ItemCheckBox"); 
+            if (ch.Checked) 
+            { 
+                id += GridView1.DataKeys[gvr.DataItemIndex].Value.ToString() + ","; 
+            } 
+        } 
+        if (id == "") 
+        { 
+            Page.ClientScript.RegisterStartupScript(Page.GetType(), "", " <script>alert('请选择要删除的东 
+
+东'); </script>"); 
+        } 
+        else 
+        { 
+            id = id.Substring(0, id.Length - 1); 
+          //删除操作 
+            Bind(); 
+        } 
+    } 
+
+
+=========================================================================================== 
+
+GridView1.DataKeyNames = new string[] { "主键" }; 
+写在LOAD中. 
+
+protected void btnDel_Click(object sender, EventArgs e) 
+{ 
+for (int i = 0; i < this.GridView1.Rows.Count; i++) 
+{ 
+if (((CheckBox)this.GridView1.Rows[i].Cells[0].FindControl("chkSelect")).Checked) 
+{ 
+OA_Business.Employer.Employer epy = new OA_Business.Employer.Employer(); 
+epy.E_ID = int.Parse(GridView1.DataKeys[i].Value.ToString()); 
+epy.E_Del(); 
+} 
+} 
+BindEmployer(); 
+} 
+
+这是一个用CheckBox选中删除的用于多选的.  
+ 

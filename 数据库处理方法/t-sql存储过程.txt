@@ -1,0 +1,318 @@
+T-SQL存储过程
+存储过程
+6.1.    创建无参数存储过程
+
+Sql代码 
+1.IF EXISTS (SELECT name FROM sysobjects   
+2.WHERE name = 'au_info_all' AND type = 'P')   
+3.DROP PROCEDURE au_info_all –判断如果存在XXX过程就删除   
+4.  
+5.CREATE PROCEDURE au_info_all –创建存储过程   
+6.AS  
+7.SELECT pub_name FROM authors  
+IF EXISTS (SELECT name FROM sysobjects
+WHERE name = 'au_info_all' AND type = 'P')
+DROP PROCEDURE au_info_all –判断如果存在XXX过程就删除
+
+CREATE PROCEDURE au_info_all –创建存储过程
+AS
+SELECT pub_name FROM authors  
+
+
+SQLSERVER 调用方法：
+
+Sql代码 
+1.EXECUTE au_info_all/ EXEC au_info_all  
+EXECUTE au_info_all/ EXEC au_info_all  
+ORACLE 调用方法：
+6.2.    创建有参数存储过程
+
+Sql代码 
+1.IF EXISTS (SELECT name FROM sysobjects   
+2.WHERE name = 'au_info' AND type = 'P')   
+3.DROP PROCEDURE au_info   
+4.  
+5.CREATE PROCEDURE au_info   
+6.   @lastname varchar(40),   
+7.   @firstname varchar(20)   
+8.AS  
+9.SELECT au_lname, au_fname, title, pub_name   
+10.   FROM authors   
+11.   WHERE  au_fname = @firstname   
+12.      AND au_lname = @lastname  
+IF EXISTS (SELECT name FROM sysobjects
+WHERE name = 'au_info' AND type = 'P')
+DROP PROCEDURE au_info
+
+CREATE PROCEDURE au_info
+   @lastname varchar(40),
+   @firstname varchar(20)
+AS
+SELECT au_lname, au_fname, title, pub_name
+   FROM authors
+   WHERE  au_fname = @firstname
+      AND au_lname = @lastname  
+
+
+SQLSERVER 调用方法：
+
+Sql代码 
+1.EXECUTE au_info 'Dull', 'Ann'  
+2.EXECUTE au_info @lastname = 'Dull', @firstname = 'Ann'  
+EXECUTE au_info 'Dull', 'Ann'
+EXECUTE au_info @lastname = 'Dull', @firstname = 'Ann'  
+
+
+6.3.    创建有通配符参数存储过程
+从四个表的联接中只返回指定的作者（提供了姓名）、出版的书籍以及出版社。该存储过程对传递的参数进行模式匹配，如果没有提供参数，则使用预设的默认值.
+
+Sql代码 
+1.IF EXISTS (SELECT name FROM sysobjects   
+2.      WHERE name = 'au_info2' AND type = 'P')   
+3.   DROP PROCEDURE au_info2   
+4.  
+5.CREATE PROCEDURE au_info2   
+6.   @lastname varchar(30) = 'D%',   
+7.   @firstname varchar(18) = '%'  
+8.AS  
+9.SELECT au_lname, au_fname, title, pub_name   
+10.FROM authors   
+11.WHERE au_fname LIKE @firstname   
+12.   AND au_lname LIKE @lastname  
+IF EXISTS (SELECT name FROM sysobjects
+      WHERE name = 'au_info2' AND type = 'P')
+   DROP PROCEDURE au_info2
+
+CREATE PROCEDURE au_info2
+   @lastname varchar(30) = 'D%',
+   @firstname varchar(18) = '%'
+AS
+SELECT au_lname, au_fname, title, pub_name
+FROM authors
+WHERE au_fname LIKE @firstname
+   AND au_lname LIKE @lastname
+  
+
+SQLSERVER 调用方法：
+
+Sql代码 
+1.EXECUTE au_info2   
+2.EXECUTE au_info2 'Wh%'  
+3.EXECUTE au_info2 @firstname = 'A%'  
+4.EXECUTE au_info2 'Hunter', 'Sheryl'  
+5.EXECUTE au_info2 'H%', 'S%'  
+EXECUTE au_info2
+EXECUTE au_info2 'Wh%'
+EXECUTE au_info2 @firstname = 'A%'
+EXECUTE au_info2 'Hunter', 'Sheryl'
+EXECUTE au_info2 'H%', 'S%'  
+
+
+6.4.    创建有Output参数存储过程
+
+Sql代码 
+1.IF EXISTS(SELECT name FROM sysobjects   
+2.      WHERE name = 'titles_sum' AND type = 'P')   
+3.   DROP PROCEDURE titles_sum   
+4.  
+5.CREATE PROCEDURE  
+6.titles_sum   
+7.@@TITLE varchar(40) = '%',   
+8.@@SUM money OUTPUT  
+9.AS  
+10.SELECT 'Title Name' = title   
+11.FROM titles   
+12.WHERE title LIKE @@TITLE   
+13.SELECT @@SUM = SUM(price)   
+14.FROM titles WHERE title LIKE @@TITLE  
+IF EXISTS(SELECT name FROM sysobjects
+      WHERE name = 'titles_sum' AND type = 'P')
+   DROP PROCEDURE titles_sum
+
+CREATE PROCEDURE
+titles_sum
+@@TITLE varchar(40) = '%',
+@@SUM money OUTPUT
+AS
+SELECT 'Title Name' = title
+FROM titles
+WHERE title LIKE @@TITLE
+SELECT @@SUM = SUM(price)
+FROM titles WHERE title LIKE @@TITLE
+  
+
+SQLSERVER 调用方法：
+
+Java代码 
+1.DECLARE @@TOTALCOST money   
+2.EXECUTE titles_sum 'The%', @@TOTALCOST OUTPUT   
+3.IF @@TOTALCOST < 200  
+4.BEGIN   
+5.   PRINT 'All of these titles can be purchased for less than $200.'  
+6.END   
+7.ELSE   
+8.SELECT 'The total cost of these titles is $' + RTRIM(CAST(@@TOTALCOST AS varchar(20)))  
+DECLARE @@TOTALCOST money
+EXECUTE titles_sum 'The%', @@TOTALCOST OUTPUT
+IF @@TOTALCOST < 200
+BEGIN
+   PRINT 'All of these titles can be purchased for less than $200.'
+END
+ELSE
+SELECT 'The total cost of these titles is $' + RTRIM(CAST(@@TOTALCOST AS varchar(20))) 
+
+
+6.5.    创建有Output游标参数存储过程
+
+Sql代码 
+1.IF EXISTS (SELECT name FROM sysobjects   
+2.WHERE name = 'titles_cursor' and type = 'P')   
+3.DROP PROCEDURE titles_cursor   
+4.CREATE PROCEDURE titles_cursor @titles_cursor CURSOR VARYING OUTPUT  
+5.AS  
+6.SET @titles_cursor = CURSOR  
+7.FORWARD_ONLY STATIC FOR  
+8.SELECT *   
+9.FROM titles   
+10.OPEN @titles_cursor  
+IF EXISTS (SELECT name FROM sysobjects
+WHERE name = 'titles_cursor' and type = 'P')
+DROP PROCEDURE titles_cursor
+CREATE PROCEDURE titles_cursor @titles_cursor CURSOR VARYING OUTPUT
+AS
+SET @titles_cursor = CURSOR
+FORWARD_ONLY STATIC FOR
+SELECT *
+FROM titles
+OPEN @titles_cursor  
+
+
+SQLSERVER 调用方法：
+
+Sql代码 
+1.DECLARE @MyCursor CURSOR  
+2.EXEC titles_cursor @titles_cursor = @MyCursor OUTPUT  
+3.WHILE (@@FETCH_STATUS = 0)   
+4.BEGIN  
+5.   FETCH NEXT FROM @MyCursor   
+6.END  
+7.CLOSE @MyCursor   
+8.DEALLOCATE @MyCursor  
+DECLARE @MyCursor CURSOR
+EXEC titles_cursor @titles_cursor = @MyCursor OUTPUT
+WHILE (@@FETCH_STATUS = 0)
+BEGIN
+   FETCH NEXT FROM @MyCursor
+END
+CLOSE @MyCursor
+DEALLOCATE @MyCursor
+ 
+
+
+6.6.    创建有WITH RECOMPILE存储过程
+当每次调用存储过程时都重新编译存储过程，目前尚未发现这个参数的用处
+
+Sql代码 
+1.CREATE PROCEDURE titles_by_author   
+2.@@LNAME_PATTERN varchar(30) = '%'  
+3.WITH RECOMPILE   
+4.AS  
+5.SELECT RTRIM(au_fname) + ' ' + RTRIM(au_lname) AS 'Authors full name',   
+6.   title AS Title   
+7.FROM authors a INNER JOIN titleauthor ta   
+8.   ON a.au_id = ta.au_id INNER JOIN titles t   
+9.   ON ta.title_id = t.title_id   
+10.WHERE au_lname LIKE @@LNAME_PATTERN  
+CREATE PROCEDURE titles_by_author
+@@LNAME_PATTERN varchar(30) = '%'
+WITH RECOMPILE
+AS
+SELECT RTRIM(au_fname) + ' ' + RTRIM(au_lname) AS 'Authors full name',
+   title AS Title
+FROM authors a INNER JOIN titleauthor ta
+   ON a.au_id = ta.au_id INNER JOIN titles t
+   ON ta.title_id = t.title_id
+WHERE au_lname LIKE @@LNAME_PATTERN  
+
+
+6.7.    创建有WITH ENCRYPTION存储过程
+对存储过程进行加密，用于隐藏存储过程的文本,有编程私心的很重要噢!
+
+Sql代码 
+1.CREATE PROCEDURE encrypt_this   
+2.WITH ENCRYPTION   
+3.AS SELECT * FROM authors  
+CREATE PROCEDURE encrypt_this
+WITH ENCRYPTION
+AS SELECT * FROM authors  
+
+6.8.    调用用户定义的系统存储过程
+
+6.9.    删除存储过程
+
+Sql代码 
+1.DROP PROCEDURE procecureName  
+DROP PROCEDURE procecureName  
+
+6.10.    在SQL中存储过程的调用
+?    无参数存储过程调用
+
+Sql代码 
+1.EXECUTE au_info_all  
+EXECUTE au_info_all  
+
+?    有参数存储过程调用
+
+Sql代码 
+1.EXECUTE au_info 'Dull', 'Ann'  
+2.EXECUTE au_info @lastname = 'Dull', @firstname = 'Ann'  
+EXECUTE au_info 'Dull', 'Ann'
+EXECUTE au_info @lastname = 'Dull', @firstname = 'Ann'  
+
+?    通配符存储过程调用
+
+Sql代码 
+1.EXECUTE au_info2   
+2.EXECUTE au_info2 'Wh%'  
+3.EXECUTE au_info2 @firstname = 'A%'  
+4.EXECUTE au_info2 'Hunter', 'Sheryl'  
+5.EXECUTE au_info2 'H%', 'S%'  
+EXECUTE au_info2
+EXECUTE au_info2 'Wh%'
+EXECUTE au_info2 @firstname = 'A%'
+EXECUTE au_info2 'Hunter', 'Sheryl'
+EXECUTE au_info2 'H%', 'S%'
+  
+
+?    Output参数存储过程调用
+
+Sql代码 
+1.DECLARE @@TOTALCOST money   
+2.EXECUTE titles_sum 'The%', @@TOTALCOST OUTPUT  
+3.IF @@TOTALCOST < 200   
+4.BEGIN  
+5.       PRINT ' '  
+6.END  
+7.ELSE  
+8.SELECT 'The total cost of these titles is $' + RTRIM(CAST(@@TOTALCOST AS varchar(20)))  
+DECLARE @@TOTALCOST money
+EXECUTE titles_sum 'The%', @@TOTALCOST OUTPUT
+IF @@TOTALCOST < 200
+BEGIN
+       PRINT ' '
+END
+ELSE
+SELECT 'The total cost of these titles is $' + RTRIM(CAST(@@TOTALCOST AS varchar(20)))  
+
+
+?    Output游标参数存储过程调用
+
+Sql代码 
+1.DECLARE @MyCursor CURSOR  
+2.EXEC titles_cursor @titles_cursor = @MyCursor OUTPUT  
+3.WHILE (@@FETCH_STATUS = 0)   
+4.BEGIN  
+5.   FETCH NEXT FROM @MyCursor   
+6.END  
+7.CLOSE @MyCursor   
+8.DEALLOCATE @MyCursor  

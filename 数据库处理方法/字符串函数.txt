@@ -1,0 +1,196 @@
+Clone 复制引用
+ComPareTO 比较
+CopyTO 复制对象
+Endswith 末尾是否匹配指定string
+Equals 比较对像
+GetEnumerator 获取枚举 foreach ...
+GetHasHcode 获取对象哈希码
+GetType 获取对象类型
+GetTypecode 类型码
+Indexof 索引指向int start开始的第一个string
+IndexofAny 任意char[]匹配
+Insert 插入string 
+LastIndexof 索引指向int start结束的第一个string (从右望左)
+LastIndexofAny 任意char[]匹配
+Length 长度,数组为大小
+PadLeft 左面添string到指定长度
+PadRight 右面添string到指定长度
+Remove 从string中删除,数组为删除一个string
+Replace 替换
+Split 拆分string 为string []
+StartsWith 开始是否与指定string匹配
+Substring 从int start到int length获取子字符串
+TocharArray 转化成char[]
+Tolower 小写
+ToString 转化成字符串类型
+Toupper 大写
+Trim 两头去除空格
+TrimEnd "右面"去空格
+TrimStart "左面"去空格
+
+#region 字符串截取函数
+    /// <summary>
+    /// 字符串截取函数
+    ///如果截过则剩下的字符串加上半个省略号
+    /// </summary>
+    /// <param name="inputString">要截取的字符串</param>
+    /// <param name="len">截取长度</param>
+    /// <returns>截取后的字符串</returns>
+    public string CutString(string inputString, int len)
+    {
+        ASCIIEncoding ascii = new ASCIIEncoding();
+        int tempLen = 0;
+        string tempString = "";
+        byte[] s = ascii.GetBytes(inputString);
+        for (int i = 0; i < s.Length; i++)
+        {
+            if ((int)s[i] == 63)
+            {
+                tempLen += 2;
+            }
+            else
+            {
+                tempLen += 1;
+            }
+            try
+            {
+                tempString += inputString.Substring(i, 1);
+            }
+            catch
+            {
+                break;
+            }
+            if (tempLen > len)
+                break;
+        }
+        //如果截过则加上半个省略号
+        byte[] mybyte = System.Text.Encoding.Default.GetBytes(inputString);
+        if (mybyte.Length > len)
+        {
+            tempString += "…";
+        }
+        return tempString;
+    }
+    #endregion
+
+ 
+
+
+/// <summary>
+    /// 截取固定字符串
+    ///如果截过则剩下的字符串加上半个省略号
+    /// </summary>
+    /// <param name="inputString">要截取的字符串</param>
+    /// <returns>截取后的字符串</returns>
+    public string CutString(string inputString,int len)
+    {
+        if (inputString.Length > len)
+        {
+            return inputString.Substring(0, len) + "...";
+        }
+        else
+        {
+            return inputString;
+        }
+    
+
+ 
+
+
+函数 语法 功能 
+Len Len(string|varname) 返回字符串内字符的数目，或是存储一变量所需的字节数。 
+Trim Trim(string) 将字符串前后的空格去掉 
+Ltrim Ltrim(string) 将字符串前面的空格去掉 
+Rtrim Rtrim(string) 将字符串后面的空格去掉 
+Mid Mid(string,start,length) 从string字符串的start字符开始取得length长度的字符串，如果省略第三个参数表示从start字符开始到字符串结尾的字符串 
+
+Left Left(string,length) 从string字符串的左边取得length长度的字符串 
+Right Right(string,length) 从string字符串的右边取得length长度的字符串 
+LCase LCase(string) 将string字符串里的所有大写字母转化为小写字母 
+UCase UCase(string) 将string字符串里的所有小写字母转化为大写字母 
+StrComp StrComp(string1,string2[，compare]) 返回string1字符串与string2字符串的比较结果，如果两个字符串相同，则返回0，如果小于则返回-1，如果大于则返回1 
+
+InStr InStr(string1,string2[, compare]) 返回string1字符串在string2字符串中第一次出现的位置 
+Split Split(string1,delimiter[, count[, start]]) 将字符串根据delimiter拆分成一维数组，其中delimiter用于标识子字符串界限。如果省略，使用空格("")作为分隔符。 
+count 返回的子字符串数目，-1 指示返回所有子字符串。 
+start为 1 执行文本比较；如果为 0 或者省略执行二进制比较。
+
+Replace Replace(expression, find, replacewith[, compare[, count[, start]]]) 返回字符串，其中指定数目的某子字符串(find)被替换为另一个子字符串(replacewith)。
+
+1、Len函数示例： 
+下面的示例利用 Len 函数返回字符串中的字符数目： 
+Dim MyString 
+MyString = Len("VBSCRIPT") ''MyString 包含 8。
+
+2、Trim、Ltrim、Rtrim函数示例： 
+下面的示例利用 LTrim, RTrim, 和 Trim 函数分别用来除去字符串开始的空格、尾部空格、 开始和尾部空格： 
+Dim MyVar 
+MyVar = LTrim(" vbscript ") ''MyVar 包含 "vbscript "。 
+MyVar = RTrim(" vbscript ") ''MyVar 包含 " vbscript"。 
+MyVar = Trim(" vbscript ") ''MyVar 包含"vbscript"。
+
+
+3、Mid函数示例： 
+下面的示例利用 Mid 函数返回字符串中从第四个字符开始的六个字符： 
+Dim MyVar 
+MyVar = Mid("VB脚本is fun!", 4, 6) ''MyVar 包含 "Script"。
+
+
+4、Left函数示例：
+下面的示例利用Left 函数返回MyString 的左边三个字母： 
+Dim MyString, LeftString 
+MyString = "VBSCript" 
+LeftString = Left(MyString, 3) ''LeftString 包含 "VBS 
+
+5、Right函数示例： 
+下面的示例利用 Right 函数从字符串右边返回指定数目的字符： 
+Dim AnyString, MyStr 
+AnyString = "Hello World" ''定义字符串。 
+MyStr = Right(AnyString, 1) ''返回 "d"。 
+MyStr = Right(AnyString, 6) '' 返回 " World"。 
+MyStr = Right(AnyString, 20) '' 返回 "Hello World"。 
+
+6、LCase函数示例： 
+下面的示例利用 LCase 函数把大写字母转换为小写字母： 
+Dim MyString 
+Dim LCaseString 
+MyString = "VBSCript" 
+LCaseString = LCase(MyString) '' LCaseString 包含 "vbscript"。 
+
+7、 UCase函数示例： 
+下面的示例利用 UCase 函数返回字符串的大写形式： 
+Dim MyWord 
+MyWord = UCase("Hello World") '' 返回"HELLO WORLD"。
+
+
+8、StrComp函数示例： 
+下面的示例利用 StrComp 函数返回字符串比较的结果。如果第三个参数为 1 执行文本比较；如果第三个参数为 0 或者省略执行二进制比较。
+
+Dim MyStr1, MyStr2, MyComp 
+MyStr1 = "ABCD": MyStr2 = "abcd" ''定义变量。 
+MyComp = StrComp(MyStr1, MyStr2, 1) '' 返回 0。 
+MyComp = StrComp(MyStr1, MyStr2, 0) '' 返回 -1。 
+MyComp = StrComp(MyStr2, MyStr1) '' 返回 1。
+
+
+9、InStr示例： 
+下面的示例利用 InStr 搜索字符串： 
+Dim SearchString, SearchChar, MyPos 
+SearchString ="XXpXXpXXPXXP"??? 
+SearchChar = "P"?? 
+MyPos = Instr(SearchString, SearchChar)???''返回 9. 
+注意：返回的不是一个字符串在另一个字符串中第一次出现的字符位置，而是字节位置。
+
+
+10、Split函数示例： 
+Dim MyString, MyArray, Msg 
+MyString = "VBScriptXisXfun!" 
+MyArray = Split(MyString, "x",-1,1) 
+'' MyArray(0) contains "VBScript". 
+'' MyArray(1) contains "is". 
+'' MyArray(2) contains "fun!". 
+Response.Write(MyArray(0))
+
+
+11、Replace函数示例： 
+Replace("ABCD", "BC", "12") ''得到A12D

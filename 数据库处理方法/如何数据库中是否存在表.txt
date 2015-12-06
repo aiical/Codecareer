@@ -1,0 +1,4 @@
+if exists(select   1   from   tempdb..sysobjects   where   name   like   'checkItemAbleCountTable%')
+begin
+	drop table checkItemAbleCountTable
+end

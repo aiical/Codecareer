@@ -1,0 +1,161 @@
+SQL基础语法知识之二2008年05月26日 星期一 12:06下面是结果集：
+
+The object's comments have been encrypted.
+接下来，选择加密存储过程内容的标识号和文本。
+
+SELECT c.id, c.text 
+FROM syscomments c INNER JOIN sysobjects o
+     ON c.id = o.id
+WHERE o.name = 'encrypt_this'
+
+下面是结果集：
+说明 text 列的输出显示在单独一行中。执行时，该信息将与 id 列信息出现在同一行中。
+id          text                                                        
+---------- ------------------------------------------------------------
+
+(1 row(s) affected)
+
+H. 创建用户定义的系统存储过程
+下面的示例创建一个过程，显示表名以 emp 开头的所有表及其对应的索引。如果没有指定参数，该过程将返回表名以 sys 开头的所有表（及索引）。
+
+IF EXISTS (SELECT name FROM sysobjects
+        WHERE name = 'sp_showindexes' AND type = 'P')
+     DROP PROCEDURE sp_showindexes
+GO
+USE master
+GO
+CREATE PROCEDURE sp_showindexes
+     @@TABLE varchar(30) = 'sys%'
+AS 
+SELECT o.name AS TABLE_NAME,
+     i.name AS INDEX_NAME, 
+     indid AS INDEX_ID
+FROM sysindexes i INNER JOIN sysobjects o
+     ON o.id = i.id 
+WHERE o.name LIKE @@TABLE
+GO        
+USE pubs
+EXEC sp_showindexes 'emp%'
+GO
+
+下面是结果集：
+
+TABLE_NAME         INDEX_NAME         INDEX_ID 
+---------------- ---------------- ----------------
+employee          employee_ind       1
+employee          PK_emp_id          2
+
+(2 row(s) affected)
+
+I. 使用延迟名称解析
+下面的示例显示四个过程以及延迟名称解析的各种可能使用方式。尽管引用的表或列在编译时不存在，但每个存储过程都可创建。
+
+IF EXISTS (SELECT name FROM sysobjects
+        WHERE name = 'proc1' AND type = 'P')
+     DROP PROCEDURE proc1
+GO
+-- Creating a procedure on a nonexistent table.
+USE pubs
+GO
+CREATE PROCEDURE proc1
+AS
+     SELECT *
+     FROM does_not_exist
+GO 
+-- Here is the statement to actually see the text of the procedure.
+SELECT o.id, c.text
+FROM sysobjects o INNER JOIN syscomments c 
+     ON o.id = c.id
+WHERE o.type = 'P' AND o.name = 'proc1'
+GO
+USE master
+GO
+IF EXISTS (SELECT name FROM sysobjects
+        WHERE name = 'proc2' AND type = 'P')
+     DROP PROCEDURE proc2
+GO
+-- Creating a procedure that attempts to retrieve information from a
+-- nonexistent column in an existing table.
+USE pubs
+GO
+CREATE PROCEDURE proc2
+AS
+     DECLARE @middle_init char(1)
+     SET @middle_init = NULL
+     SELECT au_id, middle_initial = @middle_init
+     FROM authors
+GO 
+-- Here is the statement to actually see the text of the procedure.
+SELECT o.id, c.text
+FROM sysobjects o INNER JOIN syscomments c 
+     ON o.id = c.id
+WHERE o.type = 'P' and o.name = 'proc2'
+
+==================================================================================
+=====================================结束=========================================
+==================================================================================
+
+还有另外一个参考的储存过程例子
+
+有关ASP与存储过程的文章不少，这些资料旨在提供一点帮助，仅限于此，现在我基本上通过调用存储过程访问SQL Server，以下的文字虽不敢保证绝对正确，但都是实践的总结，希望对大家能有帮助。 
+存储过程就是作为可执行对象存放在数据库中的一个或多个SQL命令。
+定义总是很抽象。存储过程其实就是能完成一定操作的一组SQL语句，只不过这组语句是放在数据库中的(这里我们只谈SQL Server)。如果我们通过创建存储过程以及在ASP中调用存储过程，就可以避免将SQL语句同ASP代码混杂在一起。这样做的好处至少有三个：
+第一、大大提高效率。存储过程本身的执行速度非常快，而且，调用存储过程可以大大减少同数据库的交互次数。
+第二、提高安全性。假如将SQL语句混合在ASP代码中，一旦代码失密，同时也就意味着库结构失密。
+第三、有利于SQL语句的重用。
+
+在ASP中，一般通过command对象调用存储过程，根据不同情况，本文也介绍其它调用方法。为了方便说明，根据存储过程的输入输出，作以下简单分类：
+1. 只返回单一记录集的存储过程
+假设有以下存储过程(本文的目的不在于讲述T-SQL语法，所以存储过程只给出代码，不作说明)： /*SP1*/
+CREATE PROCEDURE dbo.getUserList
+as
+set nocount on
+begin
+select * from dbo.[userinfo]
+end
+go 以上存储过程取得userinfo表中的所有记录，返回一个记录集。通过command对象调用该存储过程的ASP代码如下:
+
+'**通过Command对象调用存储过程**
+DIM MyComm,MyRst
+Set MyComm = Server.CreateObject("ADODB.Command")
+MyComm.ActiveConnection = MyConStr 'MyConStr是数据库连接字串
+MyComm.CommandText = "getUserList" '指定存储过程名
+MyComm.CommandType = 4 '表明这是一个存储过程
+MyComm.Prepared = true '要求将SQL命令先行编译
+Set MyRst = MyComm.Execute
+Set MyComm = Nothing 存储过程取得的记录集赋给MyRst，接下来，可以对MyRst进行操作。
+在以上代码中，CommandType属性表明请求的类型，取值及说明如下：
+-1 表明CommandText参数的类型无法确定
+1 表明CommandText是一般的命令类型
+2 表明CommandText参数是一个存在的表名称
+4 表明CommandText参数是一个存储过程的名称
+
+还可以通过Connection对象或Recordset对象调用存储过程，方法分别如下： '**通过Connection对象调用存储过程**
+DIM MyConn,MyRst
+Set MyConn = Server.CreateObject("ADODB.Connection")
+MyConn.open MyConStr 'MyConStr是数据库连接字串
+Set MyRst = MyConn.Execute("getUserList",0,4) '最后一个参断含义同CommandType
+Set MyConn = Nothing '**通过Recordset对象调用存储过程**
+DIM MyRst
+Set MyRst = Server.CreateObject("ADODB.Recordset")
+MyRst.open "getUserList",MyConStr,0,1,4
+'MyConStr是数据库连接字串,最后一个参断含义与CommandType相同 
+2. 没有输入输出的存储过程
+请看以下存储过程： /*SP2*/
+CREATE PROCEDURE dbo.delUserAll
+as
+set nocount on
+begin
+delete from dbo.[userinfo]
+end
+go 该存储过程删去userinfo表中的所有记录，没有任何输入及输出，调用方法与上面讲过的基本相同，只是不用取得记录集： '**通过Command对象调用存储过程**
+DIM MyComm
+Set MyComm = Server.CreateObject("ADODB.Command")
+MyComm.ActiveConnection = MyConStr 'MyConStr是数据库连接字串
+MyComm.CommandText = "delUserAll" '指定存储过程名
+MyComm.CommandType = 4 '表明这是一个存储过程
+MyComm.Prepared = true '要求将SQL命令先行编译
+MyComm.Execute '此处不必再取得记录集
+Set MyComm = Nothing 
+当然也可通过Connection对象或Recordset对象调用此类存储过程，不过建立Recordset对象是为了取得记录集，在没有返回记录集的情况下，还是利用Command对象吧。
+ 

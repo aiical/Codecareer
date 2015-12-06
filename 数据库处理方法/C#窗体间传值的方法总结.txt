@@ -1,0 +1,91 @@
+窗体间传值要弄清楚到底是哪个对象的问题，否则容易传错值。就比如窗体对象loginFrm为登陆窗体，想把当前的登陆用户信息传递给主窗体mainFrm，但是却实例了一个新的对象loginFrm把里头的信息传递给了mainFrm，所以得到了一空值，颇有刻舟求剑的味道，不同的内存空间就比如湖水的宽广一样，存放着不同的对象，彼此要分清楚。窗体传值的前提是，要传的字段，在类里面的访问修饰符必须是public(如果在源窗体内传值则例外，参见下列常用方法2)。
+常用的方法：
+1．    静态变量，在窗体里Class Form1中，写入一个静态变量A，可以给其赋值，那么在这个项目中，就可以通过Form1.A来调用。不推荐此种方法，不太安全。
+2．    比较稳妥的方法，就是在传值的过程中，首先在被传值窗体form2中，建立一个公有属性B，做为接收者。在form1里实例form2时，把需要传递的值A赋给新实例form2.B，或者是通过Form2类的构造函数传递，方法很多，此种传值较为安全（推荐）。
+3．    若是要得到一组固定的数据，那么可以写成一个公有的带返回值的方法，在源窗体中。然后在目标窗体中实例源窗体对象，调用此方法获得数据，此方法虽不同于静态变量，但有异曲同工之妙，可以不必强调对象。其缺点是，方法体内传递数据为固定的，不能变通。
+4．    查询对话框，大家都用过记事本，里头有个查询功能，就是当选中一段文字时，打开查询对话框，就会在查询对话框中显示选中的那段文字，其代码实现为：
+在Form1中：我们要把一个文本传递给Form2窗体，假定为passText
+              public string passText
+              {
+                   get{ return textBox1.Text;}
+              }      
+              Form1中还有个按钮button1在其点击事件中有：
+                             private void button1_Click(object sender,EventArgs e)
+              {
+                                     Form2 f2 = new Form2();   //呃。。这个就不用说了
+                      f2.Owner = this;  //设置附属，好搭关系~
+                     f2.Show();   //看得出来撒
+              }
+在Form2的对象中：
+            假设有个文本框txtBox1,现
+             private void form2_Load(object sender,EventArgs e)
+             {
+                                    //通过目标窗体，找到拥有它的源窗体，得到的是一个object
+                                     对象，要转换成Form1这个类型，就可以得到它的公有属性passText拉。
+                 textBox1.Text = ((Form1)this.Owner).passText;
+                             } 
+这样当我们打开Form2时，就会在其文本框中，显示Form1的文本框信息了（想要做到查询对话框显示选中文本的效果，只需要在把passText 的属性改成textBox.SelectedText即可.）
+这种方法的主要好处是在于，我们能在目标窗体的对象中，找到源窗体的对象。而有别与上面两种情况。
+
+5．    窗体间同步传值的实现，就是实时更新两个窗体间的信息，有心的朋友可能发现，既然能在目标窗体中，找到源窗体，那么我们还可以通过源窗体来控制目标窗体，从这里面突破，就能达到此效果了。代码如下还是依照4例：在Form1中：
+程序代码： 
+
+public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        public string passText
+        {
+            get {
+                return textBox1.SelectedText.Text;
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Form2 f2 = new Form2();
+            f2.Owner = this;
+            f2.Show();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            if(this.OwnedForms.Length != 0)
+            (this.OwnedForms[0] as Form2).selectText = textBox1.Text;/*OwnedForms是一个数组 ，表示当前对象拥有的子窗体数组，同样要把通过下标得到的元素转换为Form2类型。*/
+        }
+    }
+}
+
+namespace WindowsApplication1
+{
+    public partial class Form2 : Form
+    {
+        public string selectText
+        {
+            set
+            {
+                textBox1.Text = value;   //设置一个属性，让form1操作
+            }
+        }
+
+        public Form2()
+        {
+            InitializeComponent();
+        }
+
+        private void Form2_Load(object sender, EventArgs e)
+        {
+            textBox1.Text = ((Form1)this.Owner).passText;
+        }
+    }
+}
+
+最后，要说一下的是，在传值的时候，不光可以传变量属性，还有个很好的东西，每个窗体都有个Tag属性，是一个标记，object类型的，我们可以把一个类赋给它。这样就为我们的代码，提供了极大的便利，大家可以依据上面4种传值方式，进行使用

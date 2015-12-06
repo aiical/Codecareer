@@ -1,0 +1,162 @@
+【数据库】SQL SERVER数据库开发之触发器的应用2008/01/04 16:30
+
+标　　题：SQL SERVER数据库开发之触发器的应用
+作　　者：栽培者
+日　　期：2006-01-10
+说　　明：由于个人能力有限，文章中难免会出现错误或遗漏的地方，敬请谅解！同时欢迎你指出，以便我能及时修改，以免误导下一个看官。最后希望本文能给你带来一定的帮助。
+
+　　不知道在坛子里有多少朋友使用触发器，如果你已经对触发器很了解了，那么请跳过此文，如果你还没有使用过触发器的话，那就让我们来认识一下吧。
+
+QUOTE:定义：
+　　触发器是一种特殊类型的存储过程，不由用户直接调用。当使用下面的一种或多种数据修改操作在指定表中对数据进行修改时，触发器会生效：UPDATE、INSERT 或 DELETE。触发器可以查询其它表，而且可以包含复杂的 SQL 语句。它们主要用于强制复杂的业务规则或要求。
+　　触发器一个应用就是保持和维护数据的完整性及合法性，那么怎么来理解呢？就是说你可以在程序里提交任意数据，然后由触发器来判断数据的完整性及合法性，当然这里只是举例说明，实际应用中不推荐这样用，应该由应用程序来验证数据的完整性及合法性。
+
+　　下面我还是以实例的方式来描述触发器的应用。
+
+　　设：当前数据库中有“uMateriel”和“uRecord”两张表，他们分别用来保存物品信息和物品的出入库记录信息，结构如下
+
+QUOTE:uMateriel
+----------------
+mId　　　int
+mName　　nvarchar(40)
+mNum　　 int DEFAULT 0
+
+uRecord
+----------------
+rId　　　int
+mId　　　int
+rNum　　 int
+rDate　　datetime DEFAULT GetDate()
+rMode　　bit DEFAULT 0
+　　好了，数据表已经有了，现在看一下实际的应用。
+
+　　现在，我们要购入物品A，数量100，时间为当天，已知物品A的编号为1，那么通常我们需要做以下两个步骤：
+
+QUOTE:1、在 uRecord 记录表中增加一条物品A的购入记录：
+　　INSERT INTO uRecord (mId, rNum, rMode) VALUES (1, 100, 0)
+
+2、更新 uMateriel 物品库存表中物品A的数量：
+　　UPDATE uMateriel SET mNum = mNum + 100 WHERE mId=1
+　　也就是说代码中要先后处理以上两条语句，才能保证库存的准确性，以ASP代码为例：
+
+QUOTE:On Error Resume Next
+
+'// 设 adoConn 为已经连接的 ADODB.Connection 对象
+With adoConn
+'// 事务开始，因为涉及到多步数据更新操作，所以在这里使用事务
+.BeginTrans
+'// 插入物品入库记录
+.Execute("INSERT INTO uRecord (mId, rNum, rMode) VALUES (1, 100, 0)")
+
+'// 更新物品库存记录
+.Execute("UPDATE uMateriel SET mNum = mNum + 100 WHERE mId=1")
+
+'// 判断是否产生了错误
+If Err.Number <> 0 Then
+'// 如果有错误，事务回滚
+.RollbackTrans
+Response.Write "错误！"
+Err.Clear
+Else
+'// 如果没有错误，则提交事务
+.CommitTrans
+End If
+End With
+　　以上代码可以更新一条入库记录了，但是我们今天要了解的是触发器的应用，那么要在触发器里写什么内容可以简化以上代码呢？下面来创建一个触发器。
+
+　　创建触发器的语法很长，简化为：
+
+QUOTE:CREATE TRIGGER 触发器名 ON 表名/视图名
+{ FOR | AFTER | INSTEAD OF } { [DELETE] [,] [INSERT] [,] [UPDATE] }
+AS
+　　触发器内容（SQL 语句）
+
+
+QUOTE:SQL SERVER 联机丛书的描述：
+AFTER
+　　指定触发器只有在触发 SQL 语句中指定的所有操作都已成功执行后才激发。所有的引用级联操作和约束检查也必须成功完成后，才能执行此触发器。
+　　如果仅指定 FOR 关键字，则 AFTER 是默认设置。
+　　不能在视图上定义 AFTER 触发器。
+
+INSTEAD OF
+　　指定执行触发器而不是执行触发 SQL 语句，从而替代触发语句的操作。
+　　在表或视图上，每个 INSERT、UPDATE 或 DELETE 语句最多可以定义一个 INSTEAD OF 触发器。然而，可以在每个具有 INSTEAD OF 触发器的视图上定义视图。
+　　INSTEAD OF 触发器不能在 WITH CHECK OPTION 的可更新视图上定义。如果向指定了 WITH CHECK OPTION 选项的可更新视图添加 INSTEAD OF 触发器，SQL Server 将产生一个错误。用户必须用 ALTER VIEW 删除该选项后才能定义 INSTEAD OF 触发器。
+
+{ [DELETE] [,] [INSERT] [,] [UPDATE] }
+　　是指定在表或视图上执行哪些数据修改语句时将激活触发器的关键字。必须至少指定一个选项。在触发器定义中允许使用以任意顺序组合的这些关键字。如果指定的选项多于一个，需用逗号分隔这些选项。
+　　对于 INSTEAD OF 触发器，不允许在具有 ON DELETE 级联操作引用关系的表上使用 DELETE 选项。同样，也不允许在具有 ON UPDATE 级联操作引用关系的表上使用 UPDATE 选项。
+　　现在根据上面的语法我们建立一个触发器（注意一点，触发器是附于一张表或视图的，所以只能在表里建立或在查询分析器里建立），这个触发器的功能就是自动更新库存数量
+
+QUOTE:CREATE TRIGGER [trUpdateMaterielNum] ON [dbo].[uRecord] 
+-- 表明在插入记录之后执行这个触发器
+AFTER INSERT
+AS
+-- 当前更新的编号
+DECLARE @intID int
+-- 当前更新的数量
+DECLARE @intNum int
+-- 当前模式
+DECLARE @intMode int
+
+-- 判断是否有记录录被更新，@@ROWCOUNT是系统函数，返回受上一语句影响的行数。
+IF @@ROWCOUNT >0
+BEGIN
+-- 取得当前插入的物品编号和数量，Inserted 表用于存储 INSERT 和 UPDATE 语句所影响的行的副本。
+SELECT @intID=mId,@intNum=rNum,@intMode=rMode FROM Inserted
+
+-- 判断当前模式（0为入库，1为出库）来更新当前物品的数量
+IF @intMode = 0
+UPDATE uMateriel SET mNum = mNum + @intNum WHERE mId=@intID
+ELSE
+UPDATE uMateriel SET mNum = mNum - @intNum WHERE mId=@intID
+END
+　　我们现在来了解一下这个触发器，首先使用 CREATE TRIGGER 语句定义一个基于 uRecord 表的触发器 trUpdateMaterielNum，AFTER INSERT 表明这个触发器会在插入记录之后执行，也就是说当我们在程序里执行 INSERT INTO uRecord (mId, rNum, rMode) VALUES (1, 100, 0) 这条语句之后，trUpdateMaterielNum这个触发器里的内容就会被自动执行，也就是说库存将会被自动更新了。现在我们更改一下ASP的代码
+
+QUOTE:On Error Resume Next
+
+'// 设 adoConn 为已经连接的 ADODB.Connection 对象
+'// 插入物品入库记录
+adoConn.Execute("INSERT INTO uRecord (mId, rNum, rMode) VALUES (1, 100, 0)")
+
+'// 判断是否产生了错误
+If Err.Number <> 0 Then
+Response.Write "错误！"
+Err.Clear
+End If
+　　是不是简化了很多呢，是的，在这里已经不用考虑库存方面，只需要插入流水帐就可以了，库存更新就交由触发器来处理。
+
+　　以上的例子是触发器的其中一个应用，在触发器的参数中还有 DELETE、UPDATE，他们分别在删除和更新时或之后执行。下面看一个删除时的触发器例子。
+
+　　我们在数据库中增加一个表，用来记录日志，其结构如下
+
+QUOTE:uSysLog
+--------------
+lId int
+lEvent nvarchar(200)
+lTime datetime DEFAULT GetDate()
+　　现在假设这张表是用来记录系统的日志用的，当我们删除一条流水帐时，往日志表里记录一条事件，那么我们来创建一个基于 uRecord 表的删除时的触发器
+
+QUOTE:CREATE TRIGGER [trDeleteRecord] ON [dbo].[uRecord] 
+-- 表明在插入记录之后执行这个触发器
+FOR DELETE
+AS
+-- 当前删除的流水号
+DECLARE @intID int
+-- 当前删除的数量
+DECLARE @intNum int
+-- 当前模式
+DECLARE @intMode int
+
+-- 判断是否有记录录被更新，@@ROWCOUNT是系统函数，返回受上一语句影响的行数。
+IF @@ROWCOUNT >0
+BEGIN
+-- 取得当前删除的行信息，Deleted 表用于存储 DELETE 和 UPDATE 语句所影响的行的复本。
+SELECT @intID=rId,@intNum=rNum,@intMode=rMode FROM Deleted
+
+-- 向日志表中插入一条简单的删除事件日志
+INSERT INTO uSysLog (lEvent) VALUES ('用户删除了流水号为:' + CAST(@intID as nvarchar(20) + ',数量:' + CAST(@intNum as nvarchar(20) + ',方向:' + CASE @intMode WHEN 0 THEN '入库' ELSE '出库' END)
+END
+　　建立好触发器后，现在只要我们删除 uRecord 表中的一条记录，就会在系统日志中增加一条事件日志。
+
+　　通过以上简单的介绍，希望原来没有使用过触发器的朋友能对触发器有个大致的概念和印象，如果你要深入了解的话，SQL SERVER联机丛书就是你的好帮手。那么触发器的简单应用就介绍到这儿了，我们下次再会。 

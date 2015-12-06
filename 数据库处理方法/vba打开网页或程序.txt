@@ -1,0 +1,16 @@
+Public Function MyFollowHyperlink()
+'方法1
+'Application.FollowHyperlink "C:\WINDOWS\NOTEPAD.EXE" '打开程序
+'Application.FollowHyperlink "http://blog.163.com/"    '打开网页
+'Application.FollowHyperlink "C:\WINDOWS\test.txt"    '打开文件
+'Application.FollowHyperlink "D:\"                    '打开文件夹
+'方法2-------启动程序并运行相应主参数
+Dim ReturnValue
+ReturnValue = Shell("C:\Program Files\Internet Explorer\IEXPLORE.EXE  http://blog.163.com/")
+'方法3--------启动程序并做简当操作
+'Dim MyNote
+'MyNote = Shell("notepad.exe", 1)
+'VBA.AppActivate MyNote '设为当前窗口
+'SendKeys "这是代码内的字符", True
+'SendKeys "{ENTER}", True  '换行
+End Function

@@ -1,0 +1,51 @@
+数据库连接字符串大全 之 SQL服务器篇
+数据库的连接字符串经常使用，可是数据库的种类繁多，连接方式又分很多种，下面提供各个数据库各种方式的连接字符串方便使用的时候查询。  
+SQL服务器 
+ODBC连接方式 
+
+标准安全连接 
+Driver=
+{SQL Server};Server=myServerAddress;Database=myDataBase;Uid=myUsername;Pwd=myPassword;
+
+ 信任连接 
+Driver=
+{SQLServer};Server=myServerAddress;Database=myDataBase;Trusted_Connection=Yes; 
+提示输入用户名和密码方式 
+这个有一点问题，首先你需要设置一个Prompt 属性等于adPromptAlways连接对象，然后在使用连接字符串
+oConn.Properties("Prompt") = adPromptAlways Driver={SQL Server};Server=myServerAddress;Database=myDataBase; 
+
+OLE DB, OleDbConnection 连接方式(.NET) 
+
+标准安全连接 
+Provider=sqloledb;Data Source=myServerAddress;Initial Catalog=myDataBase;User Id=myUsername;Password=myPassword; 
+
+信任连接 
+Provider=sqloledb;Data Source=myServerAddress;Initial Catalog=myDataBase;Integrated Security=SSPI; 
+
+指定服务器的连接 
+Provider=sqloledb;Data Source=myServerName\theInstanceName;Initial Catalog=myDataBase;Integrated Security=SSPI; 
+
+提示输入用户名和密码方式 
+oConn.Provider = "sqloledb" oConn.Properties("Prompt") = adPromptAlways Data Source=myServerAddress;Initial Catalog=myDataBase; 
+
+通过IP地址连接 
+这里的Data Source=190.190.200.100,1433 前面的190.190.200.100是IP地址，1433连接是端口
+Provider=sqloledb;Data Source=190.190.200.100,1433;Network Library=DBMSSOCN;Initial Catalog=myDataBase;User ID=myUsername;Password=myPassword; 
+SqlConnection连接方式 (.NET) 
+标准安全连接 
+Data Source=myServerAddress;Initial Catalog=myDataBase;User Id=myUsername;Password=myPassword; 
+标准安全另外一种连接写法 
+Server=myServerAddress;Database=myDataBase;User ID=myUsername;Password=myPassword;Trusted_Connection=False; 
+信任连接 
+Data Source=myServerAddress;Initial Catalog=myDataBase;Integrated Security=SSPI; 
+信任连接另外一种连接写法 Server=myServerAddress;Database=myDataBase;Trusted_Connection=True; 
+指定服务器的连接 Server=myServerName\theInstanceName;Database=myDataBase;Trusted_Connection=True; 
+对CE设备的信任连接 
+Data Source=myServerAddress;Initial Catalog=myDataBase;Integrated Security=SSPI;User ID=myDomain\myUsername;Password=myPassword; 
+通过IP地址连接 
+Data Source=190.190.200.100,1433;Network Library=DBMSSOCN;Initial Catalog=myDataBase;User ID=myUsername;Password=myPassword; 
+指定包大小的连接 
+默认情况下， SQL服务器的微软.NET框架数据提供者设置网络包大小对8192个字节。然而这不一定是最好的，你可以根据你觉的合适的包大小设置包的大小，Packet Size= 就是设置包的大小值 
+Server=myServerAddress;Database=myDataBase;User ID=myUsername;Password=myPassword;Trusted_Connection=False;Packet Size=4096; 
+Data Shape连接方式 
+MS Data Shape Provider=MSDataShape;Data Provider=SQLOLEDB;Data Source=myServerAddress;Initial Catalog=myDataBase;User ID=myUsername;Password=myPassword; 

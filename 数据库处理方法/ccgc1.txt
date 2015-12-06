@@ -1,0 +1,162 @@
+SQL存储过程
+
+一.存储过程（Stored Procedure）是一组为了完成特定功能的SQL 语句集，经编译后存储在数据库中,用户通过指定存储过程的名字并给出参数（如果该存储过程带有参数）来执行它.
+
+存储过程的语法：
+
+CREATE PROC [ EDURE ] procedure_name [ ; number ]
+    [ { @parameter data_type }
+        [ VARYING ] [ = default ] [ OUTPUT ]
+    ] [ ,...n ] 
+[ WITH
+    { RECOMPILE | ENCRYPTION | RECOMPILE , ENCRYPTION } ]
+
+[ FOR REPLICATION ]
+
+AS sql_statement [ ...n ]
+
+****其中：[] 表示可选
+
+参数解释：
+procedure_name
+
+新存储过程的名称。过程名必须符合标识符规则，且对于数据库及其所有者必须唯一。有关更多信息，请参见使用标识符。
+
+要创建局部临时过程，可以在 procedure_name 前面加一个编号符 (#procedure_name)，要创建全局临时过程，可以在 procedure_name 前面加两个编号符 (##procedure_name)。完整的名称（包括 # 或 ##）不能超过 128 个字符。指定过程所有者的名称是可选的。
+
+;number
+
+是可选的整数，用来对同名的过程分组，以便用一条 DROP PROCEDURE 语句即可将同组的过程一起除去。例如，名为 orders 的应用程序使用的过程可以命名为 orderproc;1、orderproc;2 等。DROP PROCEDURE orderproc 语句将除去整个组。如果名称中包含定界标识符，则数字不应包含在标识符中，只应在 procedure_name 前后使用适当的定界符。
+
+@parameter
+
+过程中的参数。在 CREATE PROCEDURE 语句中可以声明一个或多个参数。用户必须在执行过程时提供每个所声明参数的值（除非定义了该参数的默认值）。存储过程最多可以有 2100 个参数。
+
+使用 @ 符号作为第一个字符来指定参数名称。参数名称必须符合标识符的规则。每个过程的参数仅用于该过程本身；相同的参数名称可以用在其它过程中。默认情况下，参数只能代替常量，而不能用于代替表名、列名或其它数据库对象的名称。有关更多信息，请参见 EXECUTE。
+
+data_type
+
+参数的数据类型。所有数据类型（包括 text、ntext 和 image）均可以用作存储过程的参数。不过，cursor 数据类型只能用于 OUTPUT 参数。如果指定的数据类型为 cursor，也必须同时指定 VARYING 和 OUTPUT 关键字。有关 SQL Server 提供的数据类型及其语法的更多信息，请参见数据类型。 
+
+说明 对于可以是 cursor 数据类型的输出参数，没有最大数目的限制。
+
+
+VARYING
+
+指定作为输出参数支持的结果集（由存储过程动态构造，内容可以变化）。仅适用于游标参数。
+
+default
+
+参数的默认值。如果定义了默认值，不必指定该参数的值即可执行过程。默认值必须是常量或 NULL。如果过程将对该参数使用 LIKE 关键字，那么默认值中可以包含通配符（%、_、[] 和 [^]）。
+
+OUTPUT
+
+表明参数是返回参数。该选项的值可以返回给 EXEC[UTE]。使用 OUTPUT 参数可将信息返回给调用过程。Text、ntext 和 image 参数可用作 OUTPUT 参数。使用 OUTPUT 关键字的输出参数可以是游标占位符。
+
+n
+
+表示最多可以指定 2100 个参数的占位符。
+
+{RECOMPILE | ENCRYPTION | RECOMPILE, ENCRYPTION}
+
+RECOMPILE 表明 SQL Server 不会缓存该过程的计划，该过程将在运行时重新编译。在使用非典型值或临时值而不希望覆盖缓存在内存中的执行计划时，请使用 RECOMPILE 选项。
+
+ENCRYPTION 表示 SQL Server 加密 syscomments 表中包含 CREATE PROCEDURE 语句文本的条目。使用 ENCRYPTION 可防止将过程作为 SQL Server 复制的一部分发布。
+
+说明 在升级过程中，SQL Server 利用存储在 syscomments 中的加密注释来重新创建加密过程。
+
+FOR REPLICATION
+
+指定不能在订阅服务器上执行为复制创建的存储过程。.使用 FOR REPLICATION 选项创建的存储过程可用作存储过程筛选，且只能在复制过程中执行。本选项不能和 WITH RECOMPILE 选项一起使用。
+
+AS
+
+指定过程要执行的操作。
+
+sql_statement
+
+过程中要包含的任意数目和类型的 Transact-SQL 语句。但有一些限制。
+
+n
+
+是表示此过程可以包含多条 Transact-SQL 语句的占位符。
+
+二.几个简单的实例
+
+表book的内容如下
+
+   编号    书名                           价格
+
+Webjx.Com
+
+   001      C语言入门                   $30 网页教学网
+
+   002      PowerBuilder报表开发 $52 网页教学网
+
+实例1:查询表Book的内容的存储过程
+
+   create proc query_book
+
+      as
+
+      select * from book 网页教学网
+
+   go 
+   exec query_book
+
+
+实例2:加入一笔记录到表book,并查询此表中所有书籍的总金额
+
+Create proc insert_book 
+   @param1 char(10),@param2 varchar(20),@param3 money,@param4 money output
+
+   with encryption
+
+as
+   insert book(编号,书名，价格） Values(@param1,@param2,@param3)
+   select @param4=sum(价格) from book
+go 
+
+执行例子:
+
+declare @total_price money 
+exec insert_book '003','Delphi 控件开发指南',$100,@total_price
+print '总金额为'+convert(varchar,@total_price)
+go 
+存储过程的3种传回值:
+   1.以Return传回整数
+   2.以output格式传回参数
+   3.Recordset
+
+传回值的区别:
+       output和return都可在批次程式中用变量接收,而recordset则传回到执行批次的客户端中 网页教学网
+
+实例3：设有两个表为Product,Order,其表内容如下： 网页教学网
+
+以下为引用的内容：
+      Product
+           产品编号       产品名称    客户订数     
+            001             钢笔         30         
+            002             毛笔         50         
+            003             铅笔         100        
+      order 
+           产品编号         客户名     客户订金
+            001              南山区      $30
+            002              罗湖区      $50
+            003              宝安区      $4
+
+
+请实现按编号为连接条件,将两个表连接成一个临时表,该表只含编号.产品名.客户名.订金.总金额,
+总金额=订金*订数,临时表放在存储过程中
+
+代码如下: 
+     Create proc temp_sale
+     as
+       select a.产品编号,a.产品名称,b.客户名,b.客户订金,a.客户订数* b.客户订金 as总金额
+       into #temptable from Product a inner join order b on a.产品编号=b.产品编号
+    if @@error=0 
+       print 'Good'
+    else
+       print 'Fail'
+     go
+

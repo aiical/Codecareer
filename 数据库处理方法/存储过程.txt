@@ -1,0 +1,213 @@
+学习存储过程，看几个实例就可以了。很好上手的。接下来就是多看多写。。。
+我当初就是看了下面的例子。然后就进项目写了。
+包含事务，参数，嵌套调用，游标，循环等
+
+ drop procedure if exists pro_rep_shadow_rs 
+ delimiter |
+ ----------------------------------
+ -- rep_shadow_rs
+ -- 用来处理信息的增加，更新和删除
+ -- 每次只更新上次以来没有做过的数据
+ -- 根据不同的标志位
+ -- 需要一个输出的参数，
+ -- 如果返回为0，则调用失败，事务回滚
+ -- 如果返回为1，调用成功，事务提交
+ --
+ -- 测试方法
+ -- call pro_rep_shadow_rs( rtn) 
+ -- select  rtn 
+ ----------------------------------
+ create procedure pro_rep_shadow_rs(out rtn int)
+ begin
+     -- 声明变量，所有的声明必须在非声明的语句前面
+     declare ilast_rep_sync_id int default -1 
+     declare imax_rep_sync_id int default -1 
+     -- 如果出现异常，或自动处理并rollback 但不再通知调用方了
+     -- 如果希望应用获得异常，需要将下面这一句，以及启动事务和提交事务的语句全部去掉
+     declare exit handler for sqlexception rollback 
+     -- 查找上一次的
+     select eid into ilast_rep_sync_id from rep_de_proc_log where tbl=' rep_shadow_rs'  
+     -- 如果不存在，则增加一行
+     if ilast_rep_sync_id=-1 then
+       insert into rep_de_proc_log(rid eid tbl) values(0 0 ' rep_shadow_rs' ) 
+       set ilast_rep_sync_id = 0 
+     end if 
+
+     -- 下一个数字
+     set ilast_rep_sync_id=ilast_rep_sync_id+1 
+     -- 设置默认的返回值为0：失败
+     set rtn=0 
+
+     -- 启动事务
+     start transaction 
+     -- 查找最大编号
+     select max(rep_sync_id) into imax_rep_sync_id from rep_shadow_rs 
+     -- 有新数据
+     if imax_rep_sync_id> =ilast_rep_sync_id then
+         -- 调用
+         call pro_rep_shadow_rs_do(ilast_rep_sync_id imax_rep_sync_id) 
+         -- 更新日志
+         update rep_de_proc_log set rid=ilast_rep_sync_id eid=imax_rep_sync_id where tbl=' rep_shadow_rs'  
+     end if 
+
+     -- 运行没有异常，提交事务
+     commit 
+     -- 设置返回值为1
+     set rtn=1 
+ end 
+ |
+ delimiter  
+ drop procedure if exists pro_rep_shadow_rs_do 
+ delimiter |
+ ---------------------------------
+ -- 处理指定编号范围内的数据
+ -- 需要输入2个参数
+ -- last_rep_sync_id 是编号的最小值
+ -- max_rep_sync_id 是编号的最大值
+ -- 无返回值
+ ---------------------------------
+ create procedure pro_rep_shadow_rs_do(last_rep_sync_id int  max_rep_sync_id int)
+ begin
+     declare irep_operationtype varchar(1) 
+     declare irep_status varchar(1) 
+     declare irep_sync_id int 
+     declare iid int 
+     -- 这个用于处理游标到达最后一行的情况
+     declare stop int default 0 
+     -- 声明游标
+     declare cur cursor for select id rep_operationtype irep_status rep_sync_id from rep_shadow_rs where rep_sync_id between last_rep_sync_id and max_rep_sync_id 
+     -- 声明游标的异常处理，设置一个终止标记
+     declare continue handler for sqlstate ' 02000'  set stop=1 
+
+     -- 打开游标
+     open cur 
+
+     -- 读取一行数据到变量
+     fetch cur into iid irep_operationtype irep_status irep_sync_id 
+     -- 这个就是判断是否游标已经到达了最后
+     while stop < >  1 do
+         -- 各种判断
+         if irep_operationtype=' i'  then
+             insert into rs0811 (id fnbm) select id fnbm from rep_shadow_rs where rep_sync_id=irep_sync_id 
+         elseif irep_operationtype=' u'  then
+         begin
+             if irep_status=' a'  then
+                 insert into rs0811 (id fnbm) select id fnbm from rep_shadow_rs where rep_sync_id=irep_sync_id 
+             elseif irep_status=' b'  then
+                 delete from rs0811 where id=iid 
+             end if 
+         end 
+         elseif irep_operationtype=' d'  then
+             delete from rs0811 where id=iid 
+         end if 
+
+         -- 读取下一行的数据
+         fetch cur into iid irep_operationtype irep_status irep_sync_id 
+     end while   -- 循环结束
+     close cur  -- 关闭游标
+  end 
+ |
+ drop procedure if exists pro_rep_shadow_rs 
+ delimiter |
+ ----------------------------------
+ -- rep_shadow_rs
+ -- 用来处理信息的增加，更新和删除
+ -- 每次只更新上次以来没有做过的数据
+ -- 根据不同的标志位
+ -- 需要一个输出的参数，
+ -- 如果返回为0，则调用失败，事务回滚
+ -- 如果返回为1，调用成功，事务提交
+ --
+ -- 测试方法
+ -- call pro_rep_shadow_rs( rtn) 
+ -- select  rtn 
+ ----------------------------------
+ create procedure pro_rep_shadow_rs(out rtn int)
+ begin
+  -- 声明变量，所有的声明必须在非声明的语句前面
+  declare ilast_rep_sync_id int default -1 
+  declare imax_rep_sync_id int default -1 
+     -- 如果出现异常，或自动处理并rollback 但不再通知调用方了
+  -- 如果希望应用获得异常，需要将下面这一句，以及启动事务和提交事务的语句全部去掉
+     declare exit handler for sqlexception rollback 
+     -- 查找上一次的
+  select eid into ilast_rep_sync_id from rep_de_proc_log where tbl=' rep_shadow_rs'  
+  -- 如果不存在，则增加一行
+  if ilast_rep_sync_id=-1 then
+    insert into rep_de_proc_log(rid eid tbl) values(0 0 ' rep_shadow_rs' ) 
+    set ilast_rep_sync_id = 0 
+  end if 
+
+  -- 下一个数字
+  set ilast_rep_sync_id=ilast_rep_sync_id+1 
+  -- 设置默认的返回值为0：失败
+  set rtn=0 
+
+  -- 启动事务
+  start transaction 
+  -- 查找最大编号
+  select max(rep_sync_id) into imax_rep_sync_id from rep_shadow_rs 
+  -- 有新数据
+  if imax_rep_sync_id> =ilast_rep_sync_id then
+   -- 调用
+   call pro_rep_shadow_rs_do(ilast_rep_sync_id imax_rep_sync_id) 
+   -- 更新日志
+   update rep_de_proc_log set rid=ilast_rep_sync_id eid=imax_rep_sync_id where tbl=' rep_shadow_rs'  
+  end if 
+
+  -- 运行没有异常，提交事务
+  commit 
+  -- 设置返回值为1
+  set rtn=1 
+ end 
+ |
+ delimiter  
+ drop procedure if exists pro_rep_shadow_rs_do 
+ delimiter |
+ ---------------------------------
+ -- 处理指定编号范围内的数据
+ -- 需要输入2个参数
+ -- last_rep_sync_id 是编号的最小值
+ -- max_rep_sync_id 是编号的最大值
+ -- 无返回值
+ ---------------------------------
+ create procedure pro_rep_shadow_rs_do(last_rep_sync_id int  max_rep_sync_id int)
+ begin
+  declare irep_operationtype varchar(1) 
+  declare irep_status varchar(1) 
+  declare irep_sync_id int 
+  declare iid int 
+  -- 这个用于处理游标到达最后一行的情况
+  declare stop int default 0 
+  -- 声明游标
+  declare cur cursor for select id rep_operationtype irep_status rep_sync_id from rep_shadow_rs where rep_sync_id between last_rep_sync_id and max_rep_sync_id 
+  -- 声明游标的异常处理，设置一个终止标记
+  declare continue handler for sqlstate ' 02000'  set stop=1 
+
+  -- 打开游标
+  open cur 
+
+  -- 读取一行数据到变量
+  fetch cur into iid irep_operationtype irep_status irep_sync_id 
+  -- 这个就是判断是否游标已经到达了最后
+  while stop < >  1 do
+   -- 各种判断
+   if irep_operationtype=' i'  then
+    insert into rs0811 (id fnbm) select id fnbm from rep_shadow_rs where rep_sync_id=irep_sync_id 
+   elseif irep_operationtype=' u'  then
+   begin
+    if irep_status=' a'  then
+     insert into rs0811 (id fnbm) select id fnbm from rep_shadow_rs where rep_sync_id=irep_sync_id 
+    elseif irep_status=' b'  then
+     delete from rs0811 where id=iid 
+    end if 
+   end 
+   elseif irep_operationtype=' d'  then
+    delete from rs0811 where id=iid 
+   end if 
+
+   -- 读取下一行的数据
+   fetch cur into iid irep_operationtype irep_status irep_sync_id 
+  end while   -- 循环结束
+  close cur  -- 关闭游标
+  end 

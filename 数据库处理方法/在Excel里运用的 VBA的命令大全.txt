@@ -1,0 +1,199 @@
+　　 
+在Excel里运用的 VBA的命令大全
+本示例为设置工作表密码 
+　　ActiveSheet.Protect Password:=641112 ' 保护工作表并设置密码     
+
+　　ActiveSheet.Unprotect Password:=641112 '撤消工作表保护并取消密码  
+
+　　'本示例保存当前活动工作簿的副本。 
+
+　　ActiveWorkbook.SaveCopyAs "C:TEMPXXXX.XLS" 
+
+　　'本示例通过将 Saved 属性设为 True 来关闭包含本段代码的工作簿，并放弃对该工作簿的任何更改。  
+
+　　ThisWorkbook.Saved = True 
+
+ 
+　　ThisWorkbook.Close     
+
+　　'本示例对自动重新计算功能进行设置，使 Microsoft Excel 不对第一张工作表自动进行重新计算。     
+
+　　Worksheets(1).EnableCalculation = False 
+
+
+　　'下述过程打开 C 盘上名为 MyFolder 的文件夹中的 MyBook.xls 工作簿。  
+
+　　Workbooks.Open ("C:MyFolderMyBook.xls") 
+
+ 
+　　'本示例显示活动工作簿中工作表 sheet1 上单元格 A1 中的值。 
+
+
+　　MsgBox Worksheets("Sheet1").Range("A1").Value    
+
+　　本示例显示活动工作簿中每个工作表的名称 
+
+　　For Each ws In Worksheets     
+
+　　MsgBox ws.Name     
+
+　　Next ws 
+
+　　本示例向活动工作簿添加新工作表 , 并设置该工作表的名称? 
+
+　　Set NewSheet = Worksheets.Add     
+
+　　NewSheet.Name = "current Budget"     
+
+　　本示例将新建的工作表移到工作簿的末尾 
+
+'Private Sub Workbook_NewSheet(ByVal Sh As Object)
+Sh.Move After:=Sheets(Sheets.Count)
+End Sub 
+
+　　本示例将新建工作表移到工作簿的末尾     
+
+'Private Sub App_WorkbookNewSheet(ByVal Wb As Workbook, _
+ByVal Sh As Object)
+Sh.Move After:=Wb.Sheets(Wb.Sheets.Count)
+End Sub     
+
+　本示例新建一张工作表，然后在第一列中列出活动工作簿中的所有工作表的名称。     
+
+Set NewSheet = Sheets.Add(Type:=xlWorksheet)
+For i = 1 To Sheets.Count
+NewSheet.Cells(i, 1).Value = Sheets(i).Name
+Next i 
+
+   
+
+
+　　本示例将第十行移到窗口的最上面?  
+
+　　Worksheets("Sheet1").Activate     
+
+　　ActiveWindow.ScrollRow = 10 
+
+   
+
+
+　　当计算工作簿中的任何工作表时，本示例对第一张工作表的 A1:A100 区域进行排序。     
+
+'Private Sub Workbook_SheetCalculate(ByVal Sh As Object)
+With Worksheets(1)
+.Range("a1:a100").Sort Key1:=.Range("a1")
+End With
+End Sub     
+
+　　本示例显示工作表 Sheet1 的打印预览。 
+
+　　Worksheets("Sheet1").PrintPreview    
+
+　　本示例保存当前活动工作簿? 
+
+
+
+　　ActiveWorkbook.Save 
+
+　　本示例保存所有打开的工作簿，然后关闭 Microsoft Excel。 
+
+  
+
+
+　　For Each w In Application.Workbooks 
+
+
+
+　　w.Save 
+
+　　Next w     
+
+　　Application.Quit 
+
+  　　下例在活动工作簿的第一张工作表前面添加两张新的工作表? 
+
+　　Worksheets.Add Count:=2, Before:=Sheets(1) 
+
+　　本示例设置 15 秒后运行 my_Procedure 过程，从现在开始计时。     
+
+　　Application.OnTime Now + TimeValue("00:00:15"), "my_Procedure" 
+
+　　本示例设置 my_Procedure 在下午 5 点开始运行。  
+
+　　Application.OnTime TimeValue("17:00:00"), "my_Procedure" 
+
+　　本示例撤消前一个示例对 OnTime 的设置。     
+
+　　Application.OnTime EarliestTime:=TimeValue("17:00:00"), _ 
+　Procedure:="my_Procedure", Schedule:=False 
+
+　　每当工作表重新计算时，本示例就调整 A 列到 F 列的宽度。     
+
+　　'Private Sub Worksheet_Calculate()     
+
+　　Columns("A:F").AutoFit 
+　　End Sub 
+
+   本示例使活动工作簿中的计算仅使用显示的数字精度。     
+
+　　ActiveWorkbook.PrecisionAsDisplayed = True 
+　　本示例将工作表 Sheet1 上的 A1:G37 区域剪下，并放入剪贴板。 
+　Worksheets("Sheet1").Range("A1:G37").Cut    
+
+　　Calculate 方法 
+
+  
+
+　　计算所有打开的工作簿、工作簿中的一张特定的工作表或者工作表中指定区域的单元格，如下表所示：     
+
+　　'要计算 '依照本示例     
+
+　　所有打开的工作簿 ' Application.Calculate （或只是 Calculate     
+
+　　）     
+
+　　指定工作表 '计算指定工作表Sheet1 Worksheets 
+
+   
+
+　　("Sheet1").Calculate 
+
+  
+
+　　指定区域 'Worksheets(1).Rows(2).Calculate    
+
+　　本示例对自动重新计算功能进行设置，使 Microsoft Excel 不对第一张工作表自动进行重新计算。 
+
+   Worksheets(1).EnableCalculation = False 
+
+   
+　　本示例计算 Sheet1 已用区域中 A 列、B 列和 C 列的公式。 
+
+   
+　　Worksheets("Sheet1").UsedRange.Columns("A:C").Calculate 
+
+   
+　　本示例更新当前活动工作簿中的所有链接?     
+
+　　ActiveWorkbook.UpdateLink Name:=ActiveWorkbook.LinkSources  
+
+　　本示例设置第一张工作表的滚动区域? 
+
+   
+
+　　Worksheets(1).ScrollArea = "a1:f10" 
+
+   
+　　本示例新建一个工作簿，提示用户输入文件名，然后保存该工作簿。  
+
+Set NewBook = Workbooks.Add
+Do
+fName = Application.GetSaveAsFilename
+Loop Until fName False
+NewBook.SaveAs Filename:=fName 
+  
+
+本示例打开 Analysis.xls 工作簿，然后运行 Auto_Open 宏。 
+
+
+　　Workbooks.Open "ANALYSIS.XLS" 

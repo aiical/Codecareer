@@ -1,0 +1,182 @@
+sql存储过程，触发器，对一张表的增删改操作影响到另外的表2008-12-29 17:16
+/*
+create database cqtest
+
+
+use cqtest
+
+create table employee
+(
+e_id int identity(1,1) primary key,
+e_name varchar(20) ,
+e_sex varchar(2),
+e_age varchar(10) 
+)
+
+select *from employee
+
+
+insert into employee(e_name,e_sex,e_age) values('zhangsan','1',50)
+insert into employee(e_name,e_sex,e_age) values('李四','0',18)
+
+create table emaddress
+(
+id    int identity(1,1) primary key,
+e_id int , 
+e_addr varchar(50),
+tel   varchar(20) 
+)
+
+select *from emaddress
+
+insert into emaddress(e_id,e_addr,tel) values(1,'重庆巴南区','13654245876') 
+insert into emaddress(e_id,e_addr,tel) values(2,'重庆解放杯','13654245876')
+
+对employee创建一个无参存储过程
+use cqtest
+IF EXISTS (SELECT name FROM sysobjects 
+         WHERE name = 'emPro' AND type = 'P')
+   DROP PROCEDURE emPro
+GO
+
+create procedure emPro
+as
+select e_name,e_sex,e_age from employee
+go
+
+drop procedure emProInsert
+对employee创建一个有参插入存储过程
+create procedure emProInsert
+   @e_name varchar(20), 
+   @e_sex varchar(2) ,
+   @e_age int
+as 
+   insert into employee(e_name,e_sex,e_age) values(@e_name,@e_sex,@e_age)
+go
+
+对employee创建一个有参数的删除存储过程
+create procedure emProDelete
+@e_id int
+as
+delete employee where e_id=@e_id
+go
+
+执行无参存储过程
+excute emPro
+执行有参插入存储过程
+execute emProInsert 'Dull', 'Ann','10'
+执行有参删除存储过程
+execute emProDelete 4
+
+
+对emaddress创建一个插入存储过程
+create procedure emaddProInsert
+@e_id int,
+@e_addr varchar(50),
+@tel varchar(20)
+as
+insert into emaddress(e_id,e_addr,tel) values(@e_id,@e_addr,@tel) 
+go
+
+execute emaddProInsert 1,'四川省份达洲市',13654548754
+exec emaddProInsert 2,'四川省份宣汗市',13654548754
+
+写一个触发器,当删除employee表的数据的时候，同时删除emaddress中e_id相对应的数据 
+if exists (select name from sysobjects
+      where name = 'trEmpDelete' and type = 'tr')
+   drop trigger trEmpDelete
+go
+
+create trigger trEmpDelete
+on employee
+for delete
+as 
+   delete emaddress from deleted employee inner join emaddress on employee.e_id=emaddress.e_id
+go
+
+测试删除的触发器
+execute emProDelete 2
+
+--"for"关键字是说明employee时的某些操作会执行触发器,比如:insert update delete
+--"as"是触发器执行的任务,可以是多个delete语句,或者是其他操作
+*/
+
+
+
+相关表的增加，修改，删除，的触发器
+
+/*
+对tableA操作时，同时影响到tableB
+insert delete update
+*/
+create table tableA
+(
+e_id int identity(1,1) primary key,
+e_name varchar(20) ,
+e_sex varchar(2),
+e_age varchar(10) 
+)
+
+create table tableB
+(
+e_id int identity(1,1) primary key,
+e_name varchar(20) ,
+e_sex varchar(2),
+e_age varchar(10) 
+)
+
+drop trigger tr_A_Insert
+create trigger tr_A_Insert
+on tableA
+for insert
+as
+begin
+insert into tableB(e_name,e_sex,e_age) select e_name,e_sex,e_age from inserted
+end
+
+
+drop trigger tr_A_Update
+create trigger tr_A_Update
+on tableA
+for update
+as
+begin
+declare @iseq varchar(20)
+select @iseq=d.e_name from deleted d
+delete from tableB where e_name=@iseq
+insert into tableB(e_name,e_sex,e_age) select e_name,e_sex,e_age from inserted
+end
+
+--删除触发器一:
+drop trigger tr_A_Delete
+create trigger tr_A_Delete
+on tableA
+for delete
+as
+begin
+delete tableB from deleted tableA inner join tableB on tableB.e_name=tableA.e_name
+end
+
+--删除触发器二:
+create trigger tr_A_Delete_B 
+on tableA
+after delete
+as 
+begin
+declare @iseq varchar(20)
+   set nocount on
+   select @iseq=d.e_name from deleted d
+   delete from table_b where e_name=@iseq
+end
+
+
+--select *from tableA
+--select *from tableB
+--update tableA set e_name='zhangzhang123' where e_id=7
+
+--delete tableA
+--delete tableB
+
+--insert into tableA(e_name,e_sex,e_age) values('zhangsan','1',50)
+--insert into tableA(e_name,e_sex,e_age) values('李四','0',18)
+ 

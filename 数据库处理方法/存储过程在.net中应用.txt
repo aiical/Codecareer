@@ -1,0 +1,247 @@
+一．前言： 
+
+存储过程（Stored Procedure）是一组为了完成特定功能的SQL语句集，经编译后存储在数据库中。用户通过指定存储过程的名字并给出参数（如果该存储过程带有参数）来执行它。存储过程是数据库中的一个重要对象，任何一个设计良好的数据库应用程序都应该用到存储过程。总的来说，存储过程具有以下一些优点： 
+
+◆存储过程允许标准组件式编程 
+
+◆存储过程能够实现较快的执行速度 
+
+◆存储过程能够减少网络流量 
+
+◆存储过程可被作为一种安全机制来充分利用 
+
+本文作者将向大家介绍.NET数据库应用程序中存储过程的应用，以及如何将它与ADO.NET中的SqlDataAdapter对象、DataSet对象等结合使用以提高.NET数据库应用程序的总体性能。 
+
+二．系统要求： 
+
+开发工具：Visual Studio.NET 
+
+数据库管理系统：SQL Server 2000（其中包含了示例程序所用到的Pubs数据库） 
+
+三．创建一个简单的存储过程： 
+
+这里我将向大家介绍如何运用Visual Studio.NET IDE来创建存储过程。运用Visual Studio.NET IDE创建存储过程是非常容易和直观的，你只要在服务器资源管理器中导向到Pubs数据库并展开节点，就会发现包括存储过程在内的各种数据库对象，如图1所示。 
+ 
+
+在存储过程节点上点击右键便可弹出一个菜单，其中包含了“新建存储过程”的命令。新建一个存储过程后，IDE中的代码编辑窗口便出现如下所示的代码模板： 
+
+ 
+
+CREATE PROCEDURE dbo.StoredProcedure1 
+/* 
+( 
+@parameter1 datatype = default value, 
+@parameter2 datatype OUTPUT )
+*/ 
+AS 
+/* SET NOCOUNT ON */ 
+RETURN 
+ 
+
+
+上面的代码模板符合简化的创建存储过程的语法规则，完整的语法规则如下： 
+
+CREATE PROC [ EDURE ] procedure_name [ ; number ] 
+[ { @parameter data_type } 
+[ VARYING ] [ = default ] [ OUTPUT ]
+] [ ,...n ] 
+[ WITH 
+{ RECOMPILE | ENCRYPTION | RECOMPILE , ENCRYPTION } ]
+[ FOR REPLICATION ] 
+AS sql_statement [ ...n ] 
+ 
+
+
+限于篇幅，各个参数的含义在此就不多作介绍了，有兴趣的读者可以参考有关SQL Server 2000数据库管理系统的资料。 
+
+下面我对该代码模板中的各个语法成分略作介绍。CREATE PROCEDURE声明创建一个存储过程，后面跟着该存储过程的名称。“/*……*/”中的成分是该存储过程的参数，可包括输入参数和输出参数。AS关键字后面的内容是该存储过程的主体部分，其中是任何数量和类型的包含在存储过程中的SQL语句。RETURN关键字表明存储过程结束并能返回整型状态值给调用者。下面我们就来创建一个简单的不带参数的存储过程并运用之： 
+
+CREATE PROCEDURE dbo.up_GetPublisherInfo
+AS 
+SELECT pub_id, pub_name, city, state, country
+FROM publishers
+RETURN 
+
+
+ 
+
+ 
+
+创建以上存储过程后，保存之。保存完毕，与该存储过程相对应的节点就会出现在服务器资源管理器中。同时请注意代码编辑窗口中的CREATE关键字变为ALTER关键字了，该关键字是用于更改任何现有的存储过程的。要运行上述存储过程，只要点击其节点并在右键弹出菜单中选择“运行存储过程”，运行的结果图示如下：
+
+ 
+
+四．创建一个带参数的存储过程： 
+
+以上我们创建了一个简单的不带参数的存储过程，而在实际的应用中往往会用到很多带有参数的存储过程。带有参数的存储过程一般是用于更新数据或是插入数据的。下面我们可以运用同样的操作方法创建一个带参数的存储过程： 
+
+ 
+
+CREATE PROCEDURE dbo.up_UpdatePublisherInfo 
+(
+@pub_id char (4), 
+@pub_name varchar (40),
+@city varchar (20), 
+@state char (2),
+@country varchar (30)
+) 
+AS
+UPDATE publishers 
+SET pub_name = @pub_name, city = @city, state = @state, 
+　country = @country 
+WHERE ( pub_id = @pub_id ) 
+RETURN 
+ 
+
+ 
+
+在上面的创建存储过程的代码中，我们通过在名称前添加一个“@”标志来声明存储过程的局部变量－参数，同时还声明了各个参数的类型，确定了各个参数的方向值，也即表明该参数是输入型的还是输出型的或者是输入输出型的或者是返回值型的。用户通过相应的存储过程名称以及正确有效的参数便可调用该存储过程了。还有，你可以通过运用OUTPUT关键字在参数中添加输出型的参数，具体方法请参考上面的语法规则。输出型的参数能返回给调用者相关的信息。 
+
+上面的存储过程能更新publishers表中相应出版商的信息。你可以通过点击该存储过程的节点，在右键弹出菜单中选择“运行存储过程”来执行它。一旦执行，IDE中便弹出一个输入出版商信息的对话框（如图3所示）。在该对话框中填入正确有效的更新信息，注意pub_id的值在原来的表中必须存在，然后点击“确定”按钮便可更新数据了。
+
+五．创建简单存储过程的数据库应用程序： 
+
+下面我们就运用上述的不带参数的存储过程来一个数据库应用程序，其中还用到了ADO.NET中的SqlDataAdapter对象以及DataSet对象。其中的SqlDataAdapter对象作为SQL Server数据库和DataSet对象的桥梁将两者联系在一起。SqlDataAdapter对象包含了两个常用的方法：Fill（）方法和Update（）方法。其中的Fill（）方法能从数据库中获取相应数据并填充到DataSet对象中，而Update（）方法顾名思义就是更新数据集的意思了。在调用Fill（）方法以前，我们必须设置好SqlDataAdapter对象的SelectCommand属性，该属性其实是一个SqlCommand对象。SelectCommand属性中包含有效的SQL语句，并能据此从数据库中获取相应数据并填充到DataSet对象中。 
+
+首先，我们创建一个Windows Forms应用程序，编程语言为C#。在Visual Studio.NET中创建一个新的项目后，给该项目添加一个新的类－Publishers类，该类封装了连接到后台数据库并获取数据集对象的业务逻辑。步骤如下： 
+
+1．添加必要的命名空间引用：using System.Data.SqlClient; 
+
+2．给该类添加如下一些必要的变量： 
+
+private SqlConnection cnPubs; 
+private SqlCommand cmdPubs;
+private SqlDataAdapter daPubs; 
+private DataSet dsPubs;
+ 
+
+
+3．在该类的构造函数中完成连接后台数据库，获取SqlDataAdapter对象等业务逻辑： 
+
+public Publishers() 
+{ 
+try
+{ 
+// 创建一个数据库连接对象
+cnPubs = new SqlConnection( "server=localhost;integrated security=true;database=pubs" ); 
+// 创建一个SqlCommand对象，并指明其命令类型为存储过程 
+cmdPubs = new SqlCommand(); 
+cmdPubs.Connection = cnPubs; 
+cmdPubs.CommandType = CommandType.StoredProcedure; 
+cmdPubs.CommandText = "up_GetPublisherInfo"; 
+// 创建一个SqlDataAdapter对象，设定其SelectCommand属性为上面的SqlCommand对象 
+daPubs = new SqlDataAdapter(); 
+daPubs.SelectCommand = cmdPubs; 
+// 创建一个DataSet对象 
+dsPubs = new DataSet();
+} 
+catch( Exception ) {}
+} 
+ 
+
+4．最后为该类提供一个GetPublisherInfo（）方法，该方法用SqlDataAdapter对象填充DataSet对象并返回填充后的DataSet对象，方法如下（值得注意的是：SqlDataAdapter对象会隐式地打开数据库连接并在获取数据后隐式地关闭连接，这就是说DataSet对象是工作在非连接模式下的。而当你显式地打开数据库连接并获取数据后，SqlDataAdapter对象并不会将该连接关闭）： 
+
+public DataSet GetPublisherInfo()
+{
+// 调用SqlDataAdapter对象的Fill（）方法并返回数据集对象 
+daPubs.Fill( dsPubs ); 
+return dsPubs; 
+} 
+ 
+
+完成Publishers类的设计后，我们给主窗体添加一个DataGrid控件并用它来显示DataSet对象中的数据。首先给主窗体类添加如下成员变量： 
+
+private Publishers pubs; 
+private DataSet ds;
+之后，修改主窗体类的构造函数如下：
+public Form1() 
+{
+// 
+// Windows 窗体设计器支持所必需的 
+// 
+InitializeComponent();
+//
+// TODO: 在 InitializeComponent 调用后添加任何构造函数代码 
+// pubs = new Publishers();
+ds = pubs.GetPublisherInfo();
+dataGrid1.DataSource = ds.Tables[0];
+} 
+ 
+
+这样该应用程序一启动主窗体的DataGrid控件中便显示了运用上述不带参数的存储过程从Pubs数据库中获取的相应数据，程序运行图示如下： 
+
+六．创建带参数的存储过程的数据库应用程序： 
+
+上面我们创建了一个不带参数的存储过程的应用程序，下面我们就来创建一个更加复杂的数据库应用程序。在实际的数据库应用中，我们往往需要获取数据并更新、插入或删除数据，这时我们就需要用到带有参数的存储过程了，同时在运用SqlDataAdapter对象时，我们会调用它的Update（）方法。该Update（）方法会自动根据DataSet对象中的DataTable对象内各条记录的变化情况完成相应操作。SqlDataAdapter对象还包含了UpdateCommand、InsertCommand、DeleteCommand等属性，这些属性其实都是SqlCommand对象。Update（）方法会根据操作的类型选用相应的属性。 
+
+在运用带有参数的存储过程建立数据库应用程序时，我们一般都要用到SqlParameter类，该类封装了各种与Sql参数相关的属性和方法。其中的属性包括了ParameterName，SqlDBType，Direction，Size，Value，SourceColumn以及SourceVersion等。其中ParameterName，SqlDBType，Direction，Size等属性是用于匹配存储过程中定义的参数的。比如下面定义的SqlParameter对象就是用来匹配前面定义的up_UpdatePublisherInfo存储过程中的“@pub_id”参数的。 
+
+SqlParameter updParam = new SqlParameter( "@pub_id", SqlDbType.Char, 4 ); 
+
+在上面的定义中，虽然Direction属性没有明确地给出，但是它的默认值为Input，所以也就满足了我们的需要。而如果一个SqlParameter对象的Direction属性为InputOutput或Output或ReturnValue，那么其Direction属性就必须明确地说明了，比如下面的代码就明确地声明了一个SqlParameter对象的Direction属性为Output。 
+
+oParam.Direction = ParameterDirection.Output; 
+
+其中的SourceColumn属性是用于匹配一个DataTable对象中的DataColumn对象的，这种匹配能在调用Update（）方法更新DataTable对象时隐式地导入所需的SqlParameter对象。如果在定义时没有声明该属性，那么你必须在代码中显式地说明SqlParameter对象的SourceColumn属性。 
+
+其中的SourceVersion属性的默认值是DataRow对象相应字段中的当前值，也就是要更新到数据库中的值。当然，SourceVersion属性也可以指向DataRow对象相应字段中的原始值，也即从数据库中获取的初始值。在数据库事务处理系统中，数据的同步性问题非常重要，下面我们来建立一个能检测数据同步性的存储过程。 
+
+ 
+
+CREATE PROCEDURE dbo.up_UpdatePublisherName 
+(
+@pub_id char(4),
+@pub_name varchar(40), 
+@Original_pub_name varchar(40) 
+) 
+AS 
+if exists(select pub_id 
+　from publishers 
+where (pub_id = @pub_id) AND (pub_name = @Original_pub_name)) 
+Begin
+　UPDATE publishers SET pub_name = @pub_name 
+　WHERE (pub_id = @pub_id)
+End
+RETURN 
+ 
+
+
+接着，我们在上面的应用程序中调用该存储过程以更新发行商的名称。首先，在原有应用程序的基础上完善其业务逻辑类－Publishers类： 
+
+1．添加一个新的SqlCommand对象，该对象能作为SqlDataAdapter对象的 UpdateCommand属性被使用：
+private SqlCommand cmdUpdPubs; 
+2．更新该类的构造函数Publishers（）函数，添加以下内容： 
+// 创建另一个SqlCommand对象，该对象引用更新发行商名称的存储过程 
+cmdUpdPubs = new SqlCommand(); 
+cmdUpdPubs.Connection = cnPubs;
+cmdUpdPubs.CommandType = CommandType.StoredProcedure;
+cmdUpdPubs.CommandText = "up_UpdatePublisherName";
+// 为上面的SqlCommand对象添加必要的参数 
+cmdUpdPubs.Parameters.Add( "@pub_id", SqlDbType.Char, 4, "pub_id" ); 
+cmdUpdPubs.Parameters.Add( "@pub_name", SqlDbType.VarChar, 40, "pub_name" );
+SqlParameter updParam = new SqlParameter 
+( "@Original_pub_name", SqlDbType.VarChar, 40, "pub_name" );
+updParam.SourceVersion = DataRowVersion.Original;
+cmdUpdPubs.Parameters.Add( updParam ); 
+3．指定SqlDataAdapter对象的UpdateCommand属性为上面定义的SqlCommand对象： 
+daPubs.UpdateCommand = cmdUpdPubs; 
+4．添加方法UpdatePublisherName（）：
+public void UpdatePublisherName( DataSet dsChanges ) 
+{ 
+// 更新所有改动
+daPubs.Update( dsChanges );
+} 
+ 
+
+
+应用程序的业务逻辑类完善之后，在主窗体上添加一个名为“更新数据集”的按钮，并添加该按钮的事件响应函数如下： 
+
+private void button1_Click(object sender, System.EventArgs e) { if( ds.HasChanges() ) { pubs.UpdatePublisherName( ds.GetChanges() ); ds.Clear(); ds = pubs.GetPublisherInfo(); } }  
+
+
+到此为止，应用程序的业务逻辑类和主窗体类都已经更新完毕，现在的应用程序能根据用户的改用更新数据库中的相关内容了。
+
+
+七．总结： 
+
+本文向大家介绍了存储过程的基本知识以及在.NET数据库应用程序中如何结合SqlDataAdapter对象、DataSet对象等构建数据驱动的应用程序。在本文中，我们运用到了两类存储过程：一类为简单的不带参数的存储过程，其运用方法相对容易；另一类为带有参数的存储过程，在调用该类存储过程时还得运用到SqlParameter对象。同时，我们不难发现将数据更新业务逻辑封装在存储过程中是一种很好的设计方法，它能提高应用程序的可管理性、可扩展性以及数据库的安全性。类似的，插入数据以及删除数据的业务逻辑也可以封装在存储过程中并以相似的方法在应用程序中被运用。最后，希望本文对大家有不少帮助。

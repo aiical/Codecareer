@@ -1,0 +1,325 @@
+--聚合函数
+use pubs
+go
+select avg(distinct price)  --算平均数
+from titles
+where type='business'
+go 
+use pubs
+go
+select max(ytd_sales)  --最大数
+from titles
+go 
+
+use pubs
+go
+select min(ytd_sales) --最小数
+from titles
+go 
+
+use pubs
+go
+select type,sum(price),sum(advance)  --求和
+from titles
+group by type
+order by type
+go 
+
+use pubs
+go 
+select count(distinct city)  --求个数
+from authors
+go 
+
+use pubs
+go
+select stdev(royalty) --返回给定表达式中所有值的统计标准偏差
+from titles
+go 
+
+use pubs
+go
+select stdevp(royalty) --返回表达式中所有制的填充统计标准偏差
+from titles
+go 
+
+use pubs
+go
+select var(royalty) --返回所有值的统计方差
+from titles
+go 
+
+use pubs
+go
+select varp(royalty) --返回所有值的填充的统计方差
+from titles
+go 
+
+
+--数学函数 
+
+select sin(23.45),atan(1.234),rand(),PI(),sign(-2.34) --其中rand是获得一个随机数
+--配置函数
+SELECT @@VERSION --获取当前数据库版本
+SELECT @@LANGUAGE --当前语言
+--时间函数
+select getdate() as 'wawa_getdate' --当前时间
+select getutcdate() as 'wawa_getutcdate' --获取utc时间
+select day(getdate()) as 'wawa_day' --取出天
+select month(getdate()) as 'wawa_month' --取出月
+select year(getdate()) as 'wawa_year' --取出年
+select dateadd(d,3,getdate()) as wawa_dateadd --加三天,注意'd'表示天,'m'表示月,'yy'表示年,下面一样
+select datediff(d,'2004-07-01','2004-07-15') as wawa_datediff --计算两个时间的差
+select datename(d,'2004-07-15') as wawa_datename --取出时间的某一部分
+select datepart(d,getdate()) as wawa_datepart  --取出时间的某一部分,和上面的那个差不多
+--字符串函数
+select ascii(123) as '123',ascii('123') as '"123"',ascii('abc') as '"abc"' --转换成ascii码
+select char(123),char(321),char(-123) --根据ascii转换成字符
+select lower('ABC'),lower('Abc'),upper('Abc'),upper('abc') --转换大小写
+select str(123.45,6,1), str(123.45,2,2) --把数值转换成字符串
+select ltrim('     "左边没有空格"')  --去空格
+select rtrim('"右边没有空格"     ') --去空格
+select ltrim(rtrim('    "左右都没有空格"    ')) --去空格
+select left('sql server',3),right('sql server',6) --取左或者取右 
+
+use pubs
+select au_lname,substring(au_fname,1,1) --取子串
+from authors
+order by au_lname 
+
+select charindex('123','abc123def',2) --返回字符串中指定表达式的起始位置
+select patindex('123','abc123def'),patindex('%123%','abc123def') --返回表达式中某模式第一次出现的起始位置
+select quotename('abc','{'),quotename('abc') --返回由指定字符扩住的字符串
+select reverse('abc'),reverse('上海') --颠倒字符串顺序
+select replace('abcdefghicde','cde','xxxx') --返回呗替换了指定子串的字符串
+select space(5),space(-2) 
+
+
+
+  --系统函数
+select host_name() as 'host_name',host_id() as 'host_id',user_name() as 'user_name',user_id() as 'user_id',db_name() as 'db_name'
+--变量的定义使用
+--声明局部变量
+declare @mycounter int
+declare @last_name varchar(30),@fname varchar(20),@state varchar(2) --一下声明多个变量
+--给变量赋值
+use northwind
+go
+declare @firstnamevariable varchar(20),
+ @regionvariable varchar(30)
+set @firstnamevariable='anne' --可以用set,也可以用select给变量赋值,微软推荐用set,但select在选择一个值直接赋值时很有用
+set @regionvariable ='wa' 
+
+select lastname,firstname,title  --用声明并赋值过的变量构建一个Select语句并查询
+from employees
+where firstname= @firstnamevariable or region=@regionvariable
+go
+--全局变量
+select @@version  --返回数据库版本
+select @@error  --返回最后的一次脚本错误
+select @@identity  --返回最后的一个自动增长列的id 
+
+--while,break,continue的使用
+--首先计算所有数的平均价格,如果低于30的话进入循环让所有的price翻倍,
+--里面又有个if来判断如果最大的单价还大于50的话,退出循环,否则继续循环,知道最大单价大于50就break出循环,呵呵,
+--我分析的应该对吧.
+use pubs
+go
+while (select avg(price) from titles) <$30 
+begin
+ update titles
+  set price=price*2
+  select max(price) from titles
+  if(select max(price) from titles) >$50
+  break
+  else
+  continue
+end
+print 'too much for the marker to bear' 
+
+P2='A'
+
+
+
+--事务编程经典例子
+--begin transaction是开始事务,commit transaction是提交事务,rollback transaction是回滚事务
+--这个例子是先插入一条记录,如果出现错误的话就回滚事务,也就是取消,并直接return(返回),如果没错的话就commit 提交这个事务了哦
+--上面的那个return返回可以返回一个整数值,如果这个值是0的话就是执行的时候没出错,如果出错了就是一个负数,
+--这个return也可以用在存储过程中,可用用 exec @return_status= pro_name来获取这个值
+use pubs
+go
+begin tran mytran
+insert into stores(stor_id,stor_name)
+values('333','my books')
+go
+insert into discounts(discounttype,stor_id,discount)
+  values('清仓甩卖','9999',50.00)
+if @@error<>0
+  begin
+   rollback tran mytran
+   print '插入打折记录出错'
+   return
+  end
+commit tran mytran 
+
+--事务处理的保存点示例
+--做了事务保存点后可以rollback(回滚)到指定的保存点,不至于所有的操作都不能用
+use pubs
+go
+select * from stores
+begin transaction testsavetran
+insert into stores(stor_id,stor_name)
+  values('1234','W.Z.D Book')
+save transaction before_insert_data2
+go
+insert into stores(stor_id,stor_name)
+  values('5678','foreat Books')
+go
+rollback transaction before_insert_data2
+select * from stores 
+
+--存储存储过程
+use pubs
+if exists(select name from sysobjects where name= 'proc_calculate_taxes' and type='P')
+drop procedure proc_calculate_taxes
+go
+create procedure proc_calculate_taxes (@p1 smallint=42,@p2 char(1),@p3 varchar(8)='char')
+as
+select *
+from titles
+--执行过程
+EXECUTE PROC_CALCULATE_TAXES @
+
+
+转自：http://hi.baidu.com/byron1655/blog/item/fa789518c051b60f35fa41bb.html
+
+
+
+
+------------------------------------------------------------------------另一篇-----------------------------
+
+
+sql常用函数大全
+2009年04月20日 星期一 13:47
+SQL常用字符串函数2007-03-22 21:07一、字符转换函数 
+1、ASCII() 
+返回字符表达式最左端字符的ASCII 码值。在ASCII（）函数中，纯数字的字符串可不用‘’括起来，但含其它字符的字符串必须用‘’括起来使用，否则会出错。 
+2、CHAR() 
+将ASCII 码转换为字符。如果没有输入0 ~ 255 之间的ASCII 码值，CHAR（） 返回NULL 。 
+3、LOWER()和UPPER() 
+LOWER()将字符串全部转为小写；UPPER()将字符串全部转为大写。 
+4、STR() 
+把数值型数据转换为字符型数据。 
+STR (<float_expression>[，length[， <decimal>]]) 
+length 指定返回的字符串的长度，decimal 指定返回的小数位数。如果没有指定长度，缺省的length 值为10， decimal 缺省值为0。 
+当length 或者decimal 为负值时，返回NULL； 
+当length 小于小数点左边（包括符号位）的位数时，返回length 个*； 
+先服从length ，再取decimal ； 
+当返回的字符串位数小于length ，左边补足空格。 
+二、去空格函数 
+1、LTRIM() 把字符串头部的空格去掉。 
+
+2、RTRIM() 把字符串尾部的空格去掉。 
+
+三、取子串函数 
+1、left() 
+LEFT (<character_expression>， <integer_expression>) 
+返回character_expression 左起 integer_expression 个字符。 
+
+2、RIGHT() 
+RIGHT (<character_expression>， <integer_expression>) 
+返回character_expression 右起 integer_expression 个字符。 
+
+3、SUBSTRING() 
+SUBSTRING (<expression>， <starting_ position>， length) 
+返回从字符串左边第starting_ position 个字符起length个字符的部分。 
+
+四、字符串比较函数 
+1、CHARINDEX() 
+返回字符串中某个指定的子串出现的开始位置。 
+CHARINDEX (<’substring_expression’>， <expression>) 
+其中substring _expression 是所要查找的字符表达式，expression 可为字符串也可为列名表达式。如果没有发现子串，则返回0 值。 
+此函数不能用于TEXT 和IMAGE 数据类型。 
+
+2、PATINDEX() 
+返回字符串中某个指定的子串出现的开始位置。 
+PATINDEX (<’%substring _expression%’>， <column_ name>)其中子串表达式前后必须有百分号“%”否则返回值为0。 
+与CHARINDEX 函数不同的是，PATINDEX函数的子串中可以使用通配符，且此函数可用于CHAR、 VARCHAR 和TEXT 数据类型。 
+
+五、字符串操作函数 
+1、QUOTENAME() 
+返回被特定字符括起来的字符串。 
+QUOTENAME (<’character_expression’>[， quote_ character]) 其中quote_ character 标明括字符串所用的字符，缺省值为“[]”。 
+
+2、REPLICATE() 
+返回一个重复character_expression 指定次数的字符串。 
+REPLICATE (character_expression integer_expression) 如果integer_expression 值为负值，则返回NULL 。 
+
+3、REVERSE() 
+将指定的字符串的字符排列顺序颠倒。 
+REVERSE (<character_expression>) 其中character_expression 可以是字符串、常数或一个列的值。 
+
+4、REPLACE() 
+返回被替换了指定子串的字符串。 
+REPLACE (<string_expression1>， <string_expression2>， <string_expression3>) 用 string_expression3 替换在string_expression1 中的子串string_expression2。 
+
+4、SPACE() 
+返回一个有指定长度的空白字符串。 
+SPACE (<integer_expression>) 如果integer_expression 值为负值，则返回NULL 。 
+
+5、STUFF() 
+用另一子串替换字符串指定位置、长度的子串。 
+STUFF (<character_expression1>， <start_ position>， <length>，<character_expression2>) 
+如果起始位置为负或长度值为负，或者起始位置大于character_expression1 的长度，则返回NULL 值。 
+如果length 长度大于character_expression1 中 start_ position 以右的长度，则character_expression1 只保留首字符。 
+六、数据类型转换函数 
+1、CAST() 
+CAST (<expression> AS <data_ type>[ length ]) 
+
+2、CONVERT() 
+CONVERT (<data_ type>[ length ]， <expression> [， style]) 
+
+1）data_type为SQL Server系统定义的数据类型，用户自定义的数据类型不能在此使用。 
+2）length用于指定数据的长度，缺省值为30。 
+3）把CHAR或VARCHAR类型转换为诸如INT或SAMLLINT这样的INTEGER类型、结果必须是带正号或负号的数值。 
+4）TEXT类型到CHAR或VARCHAR类型转换最多为8000个字符，即CHAR或VARCHAR数据类型是最大长度。 
+5）IMAGE类型存储的数据转换到BINARY或VARBINARY类型，最多为8000个字符。 
+6）把整数值转换为MONEY或SMALLMONEY类型，按定义的国家的货币单位来处理，如人民币、美元、英镑等。 
+7）BIT类型的转换把非零值转换为1，并仍以BIT类型存储。 
+8）试图转换到不同长度的数据类型，会截短转换值并在转换值后显示“+”，以标识发生了这种截断。 
+9）用CONVERT（） 函数的style 选项能以不同的格式显示日期和时间。style 是将DATATIME 和SMALLDATETIME 数据转换为字符串时所选用的由SQL Server 系统提供的转换样式编号，不同的样式编号有不同的输出格式。 
+七、日期函数 
+1、day(date_expression) 
+返回date_expression中的日期值 
+
+2、month(date_expression) 
+返回date_expression中的月份值 
+
+3、year(date_expression) 
+返回date_expression中的年份值 
+
+4、DATEADD() 
+DATEADD (<datepart>， <number>， <date>) 
+返回指定日期date 加上指定的额外日期间隔number 产生的新日期。 
+
+5、DATEDIFF() 
+DATEDIFF (<datepart>， <date1>， <date2>) 
+返回两个指定日期在datepart 方面的不同之处，即date2 超过date1的差距值，其结果值是一个带有正负号的整数值。 
+
+6、DATENAME() 
+DATENAME (<datepart>， <date>) 
+以字符串的形式返回日期的指定部分此部分。由datepart 来指定。 
+
+7、DATEPART() 
+DATEPART (<datepart>， <date>) 
+以整数值的形式返回日期的指定部分。此部分由datepart 来指定。 
+DATEPART (dd， date) 等同于DAY (date) 
+DATEPART (mm， date) 等同于MONTH (date) 
+DATEPART (yy， date) 等同于YEAR (date) 
+
+8、GETDATE() 
+以DATETIME 的缺省格式返回系统当前  
+
+
+
+本文来自CSDN博客，转载请标明出处：http://blog.csdn.net/haoliumeihua/archive/2009/04/23/4102324.aspx

@@ -1,0 +1,91 @@
+SQL 函数
+
+Abs(number) 取得数值的绝对值。 
+Asc(String) 取得字符串表达式的第一个字符ASCII 码。 
+Atn(number) 取得一个角度的反正切值。 
+CallByName (object, procname, usecalltype,[args()]) 执行一个对象的方法、设定或传回对象的属性。 
+CBool(expression) 转换表达式为Boolean 型态。 
+CByte(expression) 转换表达式为Byte 型态。 
+CChar(expression) 转换表达式为字符型态。 
+CDate(expression) 转换表达式为Date 型态。 
+CDbl(expression) 转换表达式为Double 型态。 
+CDec(expression) 转换表达式为Decimal 型态。 
+CInt(expression) 转换表达式为Integer 型态。 
+CLng(expression) 转换表达式为Long 型态。 
+CObj(expression) 转换表达式为Object 型态。 
+CShort(expression) 转换表达式为Short 型态。 
+CSng(expression) 转换表达式为Single 型态。 
+CStr(expression) 转换表达式为String 型态。 
+Choose (index, choice-1[, choice-2, ... [, choice-n]]) 以索引值来选择并传回所设定的参数。 
+Chr(charcode) 以ASCII 码来取得字符内容。 
+Close(filenumberlist) 结束使用Open 开启的档案。 
+Cos(number) 取得一个角度的余弦值。 
+Ctype(expression, typename) 转换表达式的型态。 
+DateAdd(dateinterval, number, datetime) 对日期或时间作加减。 
+DateDiff(dateinterval, date1, date2) 计算两个日期或时间间的差值。 
+DatePart (dateinterval, date) 依接收的日期或时间参数传回年、月、日或时间。 
+DateSerial(year, month, day) 将接收的参数合并为一个只有日期的Date 型态的数据。 
+DateValue(datetime) 取得符合国别设定样式的日期值，并包含时间。
+Day(datetime) 依接收的日期参数传回日。 
+Eof(filenumber) 当抵达一个被开启的档案结尾时会传回True。 
+Exp(number) 依接收的参数传回e 的次方值。 
+FileDateTime(pathname) 传回档案建立时的日期、时间。 
+FileLen(pathname) 传回档案的长度，单位是Byte。 
+Filter(sourcearray, match[, include[, compare]]) 搜寻字符串数组中的指定字符串，凡是数组元素中含有指定字符串，会将它们结合成新的字符串数组并传回。若是要传回不含指定字符串的数组元素，则include 参数设为False。compare 参数则是设定搜寻时是否区分大小写，此时只要给TextCompare 常数或1 即可。 
+Fix(number) 去掉参数的小数部分并传回。 
+Format(expression[, style[, firstdayofweek[, firstweekofyear]]]) 将日期、时间和数值资料转为每个国家都可以接受的格式。 
+FormatCurrency(expression[,numdigitsafterdecimal [,includeleadingdigit]]) 将数值输出为金额型态。 
+numdigitsafterdecimal 参数为小数字数，includeleadingdigit 参数为当整数为0 时是否补至整数字数。 
+FormatDateTime(date[,namedformat]) 传回格式化的日期或时间数据。 
+FormatNumber(expression[,numdigitsafterdecimal [,includeleadingdigit]]) 传回格式化 
+的数值数据。Numdigitsafterdecimal 参数为小数字数，includeleadingdigit 参数为当整数为0 时是否补至整数字数。 
+FormatPercent(expression[,numdigitsafterdecimal [,includeleadingdigit]]) 传回转换为百分比格式的数值数据。numdigitsafterdecimal 参数为小数字数，includeleadingdigit 参数为当整数为0 时是否补至整数字数。 
+GetAttr(filename) 传回档案或目录的属性值。 
+Hex(number) 将数值参数转换为16 进制值。 
+Hour(time) 传回时间的小时字段，型态是Integer。 
+Iif(expression, truepart, falsepart) 当表达式的传回值为True 时执行truepart 字段的程序，反之则执行falsepart 字段。 
+InStr([start, ]string1, string2) 搜寻string2 参数设定的字符出现在字符串的第几个字符，start 为由第几个字符开始寻找，string1 为欲搜寻的字符串，string2 为欲搜寻的字符。 
+Int(number) 传回小于或等于接收参数的最大整数值。 
+IsArray(varname) 判断一个变量是否为数组型态，若为数组则传回True，反之则为False。
+IsDate(expression) 判断表达式内容是否为DateTime 型态，若是则传回True，反之则为False。 
+IsDbNull(expression) 判断表达式内容是否为Null，若是则传回True，反之则为False。 
+IsNumeric(expression) 判断表达式内容是否为数值型态，若是则传回True，反之则为False。 
+join(sourcearray[, delimiter]) 将字符串数组合并唯一个字符串，delimiter 参数是设定在各个元素间加入新的字符串。 
+Lcase(string) 将字符串转换为小写字体。 
+Left(string, length) 由字符串左边开始取得length 参数设定长度的字符。 
+Len(string) 取得字符串的长度。 
+Log(number) 取得数值的自然对数。 
+Ltrim(string) 去掉字符串的左边空白部分。 
+Mid(string, start[, length]) 取出字符串中strat 参数设定的字符后length 长度的字符串，若length 参数没有设定，则取回start 以后全部的字符。 
+Minute(time) 取得时间内容的分部分，型态为Integer。 
+MkDir(path) 建立一个新的目录。 
+Month(date) 取得日期的月部分，型态为Integer。
+MonthName(month) 依接收的月份数值取得该月份的完整写法。 
+Now() 取得目前的日期和时间。 
+Oct(number) 将数值参数转换为8 进制值。 
+Replace(expression, find, replace) 将字符串中find 参数指定的字符串转换为replace 参数指定的字符串。 
+Right(string,length) 由字符串右边开始取得length 参数设定长度的字符。 
+RmDir(path) 移除一个空的目录。 
+Rnd() 取得介于0 到1 之间的小数，如果每次都要取得不同的值，使用前需加上Randomize 叙述。 
+Rtrim(string) 去掉字符串的右边空白部分。 
+Second(time) 取得时间内容的秒部分，型态为Integer。 
+Sign(number) 取得数值内容是正数或负数，正数传回1，负数传回-1，0 传回0。 
+Sin(number) 取得一个角度的正弦值。 
+Space(number) 取得number 参数设定的空白字符串。
+Split(expression[, delimiter]) 以delimiter 参数设定的条件字符串来将字符串分割为字符串数组。 
+Sqrt(number) 取得一数值得平方根。 
+Str(number) 将数字转为字符串后传回。 
+StrReverse(expression) 取得字符串内容反转后的结果。 
+Tan(number) 取得某个角度的正切值。 
+TimeOfDay() 取得目前不包含日期的时间。 
+Timer() 取得由0:00 到目前时间的秒数，型态为Double。 
+TimeSerial(hour, minute, second) 将接收的参数合并为一个只有时间Date 型态的数据。 
+TimaValue(time) 取得符合国别设定样式的时间值。 
+Today() 取得今天不包含时间的日期。 
+Trim(string) 去掉字符串开头和结尾的空白。 
+TypeName(varname) 取得变量或对象的型态。 
+Ubound(arrayname[, dimension]) 取得数组的最终索引值，dimension 参数是指定取得第几维度的最终索引值。 
+Ucase(string) 将字符串转换为大写。 
+Val(string) 将代表数字的字符串转换为数值型态，若字符串中含有非数字的内容则会将其去除后，合并为一数字。 
+Weekday(date) 取的参数中的日期是一个星期的第几天，星期天为1、星期一为2、星期二为3 依此类推。 
+WeekDayName(number) 依接收的参数取得星期的名称，可接收的参数为1 到7，星期天为1、星期一为2、星期二为3 依此类推。
