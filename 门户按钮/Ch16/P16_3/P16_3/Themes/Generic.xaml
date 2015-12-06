@@ -1,0 +1,108 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:P16_3">
+
+    <Style TargetType="local:SpriteControl">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:SpriteControl">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="local:Boat">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:Boat">
+                    <Image Source="Image/boat.png" Stretch="Uniform"></Image>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="local:Cart">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:Cart">
+                    <Image Source="Image/cart.png" Stretch="Uniform"></Image>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <Style TargetType="local:Xiyangyang">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:Xiyangyang">
+                    <Image Source="Image/xiyangyang.png" Stretch="Uniform"></Image>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="local:Meiyangyang">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:Meiyangyang">
+                    <Image Source="Image/meiyangyang.png" Stretch="Uniform"></Image>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="local:Feiyangyang">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:Feiyangyang">
+                    <Image Source="Image/feiyangyang.png" Stretch="Uniform"></Image>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="local:Lanyangyang">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:Lanyangyang">
+                    <Image Source="Image/lanyangyang.png" Stretch="Uniform"></Image>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="local:Nuanyangyang">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:Nuanyangyang">
+                    <Image Source="Image/nuanyangyang.png" Stretch="Uniform"></Image>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="local:Manyangyang">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:Manyangyang">
+                    <Image Source="Image/manyangyang.png" Stretch="Uniform"></Image>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="local:Huitailang">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:Huitailang">
+                    <Image Source="Image/huitailang.png" Stretch="Uniform"></Image>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

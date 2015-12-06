@@ -1,0 +1,11 @@
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\bin\Debug\P13_7.exe
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\bin\Debug\P13_7.pdb
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\obj\x86\Debug\MainWindow.baml
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\obj\x86\Debug\MainWindow.g.cs
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\obj\x86\Debug\App.g.cs
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\obj\x86\Debug\P13_7_MarkupCompile.cache
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\obj\x86\Debug\P13_7.g.resources
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\obj\x86\Debug\P13_7.Properties.Resources.resources
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\obj\x86\Debug\P13_7.csproj.GenerateResource.Cache
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\obj\x86\Debug\P13_7.exe
+E:\Press\_Prjs\CSOO V2\Ch13\P13_7\obj\x86\Debug\P13_7.pdb

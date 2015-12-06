@@ -1,0 +1,14 @@
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\bin\Debug\Geo.mdb
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\bin\Debug\P15_2.exe.config
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\bin\Debug\P15_2.exe
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\bin\Debug\P15_2.pdb
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\MainWindow.baml
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\MainWindow.g.cs
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\App.g.cs
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\P15_2_Content.g.cs
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\P15_2_MarkupCompile.cache
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\P15_2.g.resources
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\P15_2.Properties.Resources.resources
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\P15_2.csproj.GenerateResource.Cache
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\P15_2.exe
+E:\Press\_Prjs\CSOO V2\Ch15\P15_2\obj\x86\Debug\P15_2.pdb

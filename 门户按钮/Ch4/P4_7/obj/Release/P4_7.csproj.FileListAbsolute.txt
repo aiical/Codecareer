@@ -1,0 +1,7 @@
+E:\Press\_Prjs\CSOO V2\Ch4\P4_7\bin\Release\P4_7.exe
+E:\Press\_Prjs\CSOO V2\Ch4\P4_7\bin\Release\P4_7.pdb
+E:\Press\_Prjs\CSOO V2\Ch4\P4_7\obj\Release\P4_7.Form1.resources
+E:\Press\_Prjs\CSOO V2\Ch4\P4_7\obj\Release\P4_7.Properties.Resources.resources
+E:\Press\_Prjs\CSOO V2\Ch4\P4_7\obj\Release\P4_7.csproj.GenerateResource.Cache
+E:\Press\_Prjs\CSOO V2\Ch4\P4_7\obj\Release\P4_7.exe
+E:\Press\_Prjs\CSOO V2\Ch4\P4_7\obj\Release\P4_7.pdb

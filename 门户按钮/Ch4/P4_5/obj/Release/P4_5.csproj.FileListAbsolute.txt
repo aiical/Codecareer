@@ -1,0 +1,9 @@
+D:\Prjs\CSOO\Ch4\P4_5\bin\Release\P4_5.exe
+D:\Prjs\CSOO\Ch4\P4_5\bin\Release\P4_5.pdb
+D:\Prjs\CSOO\Ch4\P4_5\obj\Release\ResolveAssemblyReference.cache
+D:\Prjs\CSOO\Ch4\P4_5\obj\Release\P4_5.exe
+D:\Prjs\CSOO\Ch4\P4_5\obj\Release\P4_5.pdb
+E:\Press\_Prjs\CSOO V2\Ch4\P4_5\bin\Release\P4_5.exe
+E:\Press\_Prjs\CSOO V2\Ch4\P4_5\bin\Release\P4_5.pdb
+E:\Press\_Prjs\CSOO V2\Ch4\P4_5\obj\Release\P4_5.exe
+E:\Press\_Prjs\CSOO V2\Ch4\P4_5\obj\Release\P4_5.pdb

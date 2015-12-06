@@ -1,0 +1,11 @@
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\Bin\Debug\P16_1.dll
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\Bin\Debug\P16_1.pdb
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\Bin\Debug\AppManifest.xaml
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\Bin\Debug\P16_1.xap
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\Bin\Debug\P16_1TestPage.html
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\obj\Debug\App.g.i.cs
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\obj\Debug\MainPage.g.i.cs
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\obj\Debug\P16_1.g.resources
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\obj\Debug\P16_1.dll
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\obj\Debug\P16_1.pdb
+E:\Press\_Prjs\CSOO V2\Ch16\P16_1\P16_1\obj\Debug\XapCacheFile.xml

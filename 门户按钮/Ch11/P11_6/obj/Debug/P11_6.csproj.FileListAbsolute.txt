@@ -1,0 +1,9 @@
+D:\Prjs\CSOO\Ch11\P11_6\bin\Debug\P11_6.exe
+D:\Prjs\CSOO\Ch11\P11_6\bin\Debug\P11_6.pdb
+D:\Prjs\CSOO\Ch11\P11_6\obj\Debug\ResolveAssemblyReference.cache
+D:\Prjs\CSOO\Ch11\P11_6\obj\Debug\P11_6.exe
+D:\Prjs\CSOO\Ch11\P11_6\obj\Debug\P11_6.pdb
+E:\Press\_Prjs\CSOO V2\Ch11\P11_6\bin\Debug\P11_6.exe
+E:\Press\_Prjs\CSOO V2\Ch11\P11_6\bin\Debug\P11_6.pdb
+E:\Press\_Prjs\CSOO V2\Ch11\P11_6\obj\Debug\P11_6.exe
+E:\Press\_Prjs\CSOO V2\Ch11\P11_6\obj\Debug\P11_6.pdb

@@ -1,0 +1,3 @@
+VBGROUP 5.0
+StartupProject=..\..\Startup\Startup\EnterprisePortal.vbp
+Project=U8Test.vbp

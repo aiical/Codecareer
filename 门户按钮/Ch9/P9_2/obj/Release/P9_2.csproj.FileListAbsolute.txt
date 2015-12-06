@@ -1,0 +1,5 @@
+D:\Prjs\CSOO\Ch9\P9_2\bin\Release\P9_2.exe
+D:\Prjs\CSOO\Ch9\P9_2\bin\Release\P9_2.pdb
+D:\Prjs\CSOO\Ch9\P9_2\obj\Release\ResolveAssemblyReference.cache
+D:\Prjs\CSOO\Ch9\P9_2\obj\Release\P9_2.exe
+D:\Prjs\CSOO\Ch9\P9_2\obj\Release\P9_2.pdb

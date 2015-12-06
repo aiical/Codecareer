@@ -1,0 +1,57 @@
+<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:clr="http://schemas.microsoft.com/soap/encoding/clr/1.0" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+<SOAP-ENV:Body>
+<a1:Student id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/P8_5/P8_5%2C%20Version%3D1.0.0.0%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<id>700001</id>
+<name id="ref-3">周军</name>
+<gender>true</gender>
+<department id="ref-4">计算机</department>
+<grade>2</grade>
+</a1:Student>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:clr="http://schemas.microsoft.com/soap/encoding/clr/1.0" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+<SOAP-ENV:Body>
+<a1:Student id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/P8_5/P8_5%2C%20Version%3D1.0.0.0%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<id>700002</id>
+<name id="ref-3">方小白</name>
+<gender>true</gender>
+<department id="ref-4">生物</department>
+<grade>1</grade>
+</a1:Student>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:clr="http://schemas.microsoft.com/soap/encoding/clr/1.0" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+<SOAP-ENV:Body>
+<a1:Student id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/P8_5/P8_5%2C%20Version%3D1.0.0.0%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<id>700003</id>
+<name id="ref-3">吴艳艳</name>
+<gender>false</gender>
+<department id="ref-4">数学</department>
+<grade>1</grade>
+</a1:Student>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:clr="http://schemas.microsoft.com/soap/encoding/clr/1.0" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+<SOAP-ENV:Body>
+<a1:Graduate id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/P8_5/P8_5%2C%20Version%3D1.0.0.0%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<supervisor id="ref-3">张大伟</supervisor>
+<Student_x002B_id>800001</Student_x002B_id>
+<Student_x002B_name id="ref-4">王小红</Student_x002B_name>
+<Student_x002B_gender>false</Student_x002B_gender>
+<Student_x002B_department id="ref-5">计算机</Student_x002B_department>
+<Student_x002B_grade>2</Student_x002B_grade>
+</a1:Graduate>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:clr="http://schemas.microsoft.com/soap/encoding/clr/1.0" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+<SOAP-ENV:Body>
+<a1:Graduate id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/P8_5/P8_5%2C%20Version%3D1.0.0.0%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<supervisor id="ref-3">张大伟</supervisor>
+<Student_x002B_id>800002</Student_x002B_id>
+<Student_x002B_name id="ref-4">李强</Student_x002B_name>
+<Student_x002B_gender>true</Student_x002B_gender>
+<Student_x002B_department id="ref-5">计算机</Student_x002B_department>
+<Student_x002B_grade>1</Student_x002B_grade>
+</a1:Graduate>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

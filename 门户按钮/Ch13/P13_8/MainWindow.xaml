@@ -1,0 +1,23 @@
+﻿<Window x:Class="P13_8.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="360" Width="640" PreviewKeyDown="Window_PreviewKeyDown">
+    <Window.Resources>
+        <GeometryGroup x:Key="Win">
+            <RectangleGeometry Rect="0,0 20,20"/>
+            <RectangleGeometry Rect="0,20 20,20"/>
+            <RectangleGeometry Rect="20,0 20,20"/>
+            <RectangleGeometry Rect="20,20 20,20"/>
+        </GeometryGroup>
+    </Window.Resources>
+    <Canvas Name="canvas1">
+        <Line X1="0" Y1="270" X2="619" Y2="270" Stroke="Blue" StrokeThickness="3"/>
+        <Rectangle Canvas.Left="100" Canvas.Top="200" Height="70" Width="100" Stroke="Black"/>
+        <Rectangle Canvas.Left="300" Canvas.Top="200" Height="70" Width="100" Stroke="Black" RadiusX="10" RadiusY="10"/>
+        <Ellipse Canvas.Left="500" Canvas.Top="50" Name="ellipse1" Fill="Red" Height="50" Width="50" />
+        <Polyline Stroke="Black" Fill="Cyan" Points="100,205 90,205 150,165 210,205 200,205" />
+        <Polygon Stroke="Black" Fill="Gray" Points="290,205 310,165 390,165 410,205" />
+        <Path Canvas.Left="115" Canvas.Top="220" Stroke="Blue" Fill="Yellow" Data="{StaticResource Win}" />
+        <Path Canvas.Left="315" Canvas.Top="220" Stroke="Blue" Fill="Yellow" Data="{StaticResource Win}" />
+    </Canvas>
+</Window>

@@ -1,0 +1,4 @@
+E:\Press\_Prjs\CSOO V2\Ch16\P16_2\P16_2.Web\bin\P16_2.Web.dll
+E:\Press\_Prjs\CSOO V2\Ch16\P16_2\P16_2.Web\bin\P16_2.Web.pdb
+E:\Press\_Prjs\CSOO V2\Ch16\P16_2\P16_2.Web\obj\Debug\P16_2.Web.dll
+E:\Press\_Prjs\CSOO V2\Ch16\P16_2\P16_2.Web\obj\Debug\P16_2.Web.pdb

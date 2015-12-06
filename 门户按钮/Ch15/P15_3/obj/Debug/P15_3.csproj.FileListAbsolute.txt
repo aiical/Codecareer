@@ -1,0 +1,5 @@
+E:\Press\_Prjs\CSOO V2\Ch15\P15_3\bin\P15_3.dll
+E:\Press\_Prjs\CSOO V2\Ch15\P15_3\bin\P15_3.pdb
+E:\Press\_Prjs\CSOO V2\Ch15\P15_3\obj\Debug\P15_3.dll
+E:\Press\_Prjs\CSOO V2\Ch15\P15_3\obj\Debug\P15_3.pdb
+E:\Press\_Prjs\CSOO V2\Ch15\P15_3\bin\App_Data\Geo.mdb

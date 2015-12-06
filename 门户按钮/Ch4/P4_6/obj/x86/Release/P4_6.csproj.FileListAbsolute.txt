@@ -1,0 +1,4 @@
+E:\Press\_Prjs\CSOO V2\Ch4\P4_6\bin\Release\P4_6.exe
+E:\Press\_Prjs\CSOO V2\Ch4\P4_6\bin\Release\P4_6.pdb
+E:\Press\_Prjs\CSOO V2\Ch4\P4_6\obj\x86\Release\P4_6.exe
+E:\Press\_Prjs\CSOO V2\Ch4\P4_6\obj\x86\Release\P4_6.pdb

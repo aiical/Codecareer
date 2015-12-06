@@ -1,0 +1,9 @@
+E:\Press\_Prjs\CSOO V2\Ch7\P7_10\bin\Debug\P7_10.exe
+E:\Press\_Prjs\CSOO V2\Ch7\P7_10\bin\Debug\P7_10.pdb
+E:\Press\_Prjs\CSOO V2\Ch7\P7_10\obj\Debug\P7_10.Form1.resources
+E:\Press\_Prjs\CSOO V2\Ch7\P7_10\obj\Debug\P7_10.Properties.Resources.resources
+E:\Press\_Prjs\CSOO V2\Ch7\P7_10\obj\Debug\P7_10.csproj.GenerateResource.Cache
+E:\Press\_Prjs\CSOO V2\Ch7\P7_10\obj\Debug\P7_10.exe
+E:\Press\_Prjs\CSOO V2\Ch7\P7_10\obj\Debug\P7_10.pdb
+E:\Press\_Prjs\CSOO V2\Ch7\P7_10\obj\Debug\P7_10.csprojResolveAssemblyReference.cache
+E:\Press\_Prjs\CSOO V2\Ch7\P7_10\bin\Debug\P7_10.exe.config

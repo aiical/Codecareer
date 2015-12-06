@@ -1,0 +1,15 @@
+D:\Prjs\CSOO\Ch10\P10_3\obj\Debug\ResolveAssemblyReference.cache
+D:\Prjs\CSOO\Ch10\P10_3\obj\Debug\P10_3.Properties.Resources.resources
+D:\Prjs\CSOO\Ch10\P10_3\obj\Debug\P10_3.csproj.GenerateResource.Cache
+D:\Prjs\CSOO\Ch10\P10_3\bin\Debug\P10_3.exe
+D:\Prjs\CSOO\Ch10\P10_3\bin\Debug\P10_3.pdb
+D:\Prjs\CSOO\Ch10\P10_3\obj\Debug\P10_3.exe
+D:\Prjs\CSOO\Ch10\P10_3\obj\Debug\P10_3.pdb
+D:\Prjs\CSOO\Ch10\P10_3\obj\Debug\P10_3.Form1.resources
+E:\Press\_Prjs\CSOO V2\Ch10\P10_3\bin\Debug\P10_3.exe
+E:\Press\_Prjs\CSOO V2\Ch10\P10_3\bin\Debug\P10_3.pdb
+E:\Press\_Prjs\CSOO V2\Ch10\P10_3\obj\Debug\P10_3.Form1.resources
+E:\Press\_Prjs\CSOO V2\Ch10\P10_3\obj\Debug\P10_3.Properties.Resources.resources
+E:\Press\_Prjs\CSOO V2\Ch10\P10_3\obj\Debug\P10_3.csproj.GenerateResource.Cache
+E:\Press\_Prjs\CSOO V2\Ch10\P10_3\obj\Debug\P10_3.exe
+E:\Press\_Prjs\CSOO V2\Ch10\P10_3\obj\Debug\P10_3.pdb

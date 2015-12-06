@@ -1,0 +1,4 @@
+E:\Press\_Prjs\CSOO V2\Ch14\P14_1\bin\P14_1.dll
+E:\Press\_Prjs\CSOO V2\Ch14\P14_1\bin\P14_1.pdb
+E:\Press\_Prjs\CSOO V2\Ch14\P14_1\obj\Debug\P14_1.dll
+E:\Press\_Prjs\CSOO V2\Ch14\P14_1\obj\Debug\P14_1.pdb

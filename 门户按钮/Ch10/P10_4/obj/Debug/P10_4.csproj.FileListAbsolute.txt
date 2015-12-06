@@ -1,0 +1,14 @@
+D:\Prjs\CSOO\Ch9\P10_4\bin\Debug\P10_4.exe
+D:\Prjs\CSOO\Ch9\P10_4\bin\Debug\P10_4.pdb
+D:\Prjs\CSOO\Ch9\P10_4\obj\Debug\ResolveAssemblyReference.cache
+D:\Prjs\CSOO\Ch9\P10_4\obj\Debug\P10_4.exe
+D:\Prjs\CSOO\Ch9\P10_4\obj\Debug\P10_4.pdb
+D:\Prjs\CSOO\Ch10\P10_4\bin\Debug\P10_4.exe
+D:\Prjs\CSOO\Ch10\P10_4\bin\Debug\P10_4.pdb
+D:\Prjs\CSOO\Ch10\P10_4\obj\Debug\ResolveAssemblyReference.cache
+D:\Prjs\CSOO\Ch10\P10_4\obj\Debug\P10_4.exe
+D:\Prjs\CSOO\Ch10\P10_4\obj\Debug\P10_4.pdb
+E:\Press\_Prjs\CSOO V2\Ch10\P10_4\obj\Debug\P10_4.exe
+E:\Press\_Prjs\CSOO V2\Ch10\P10_4\obj\Debug\P10_4.pdb
+E:\Press\_Prjs\CSOO V2\Ch10\P10_4\bin\Debug\P10_4.exe
+E:\Press\_Prjs\CSOO V2\Ch10\P10_4\bin\Debug\P10_4.pdb
